@@ -1,30 +1,310 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* Care Mode Variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --care-spacing: 2rem;
+  --care-font-size: 1.25rem;
+  --care-button-size: 4rem;
+  --care-border-radius: 1rem;
 }
 
-
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Medical Color Scheme */
+:root {
+  --medical-primary: #3B82F6;
+  --medical-secondary: #10B981;
+  --medical-accent: #8B5CF6;
+  --medical-warning: #F59E0B;
+  --medical-danger: #EF4444;
+  --medical-success: #22C55E;
+  --medical-background: #F8FAFC;
+  --medical-card: #FFFFFF;
+  --medical-border: #E2E8F0;
+  --medical-text: #1E293B;
+  --medical-text-secondary: #64748B;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.dark {
+  --medical-primary: #60A5FA;
+  --medical-secondary: #34D399;
+  --medical-accent: #A78BFA;
+  --medical-warning: #FBBF24;
+  --medical-danger: #F87171;
+  --medical-success: #4ADE80;
+  --medical-background: #0F172A;
+  --medical-card: #1E293B;
+  --medical-border: #334155;
+  --medical-text: #F1F5F9;
+  --medical-text-secondary: #94A3B8;
+}
+
+/* Care Mode Styles */
+.care-mode {
+  font-size: var(--care-font-size);
+  line-height: 1.8;
+}
+
+.care-mode * {
+  transition: all 0.3s ease;
+}
+
+.care-mode .care-spacing {
+  padding: var(--care-spacing);
+  margin-bottom: var(--care-spacing);
+}
+
+.care-mode button,
+.care-mode .btn {
+  min-height: var(--care-button-size);
+  min-width: var(--care-button-size);
+  border-radius: var(--care-border-radius);
+  font-size: 1.125rem;
+  font-weight: 600;
+  padding: 1rem 2rem;
+}
+
+.care-mode input,
+.care-mode textarea,
+.care-mode select {
+  min-height: 3.5rem;
+  font-size: 1.125rem;
+  border-radius: var(--care-border-radius);
+  border: 2px solid var(--medical-border);
+}
+
+.care-mode h1 { font-size: 3rem; margin-bottom: 1.5rem; }
+.care-mode h2 { font-size: 2.5rem; margin-bottom: 1.25rem; }
+.care-mode h3 { font-size: 2rem; margin-bottom: 1rem; }
+.care-mode p { margin-bottom: 1rem; }
+
+/* Medical UI Components */
+.medical-card {
+  background: var(--medical-card);
+  border: 1px solid var(--medical-border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.medical-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.medical-button-primary {
+  background: linear-gradient(135deg, var(--medical-primary), var(--medical-secondary));
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.medical-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.medical-alert {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border-left: 4px solid;
+  margin-bottom: 1rem;
+}
+
+.medical-alert-info {
+  background: #EBF8FF;
+  border-color: var(--medical-primary);
+  color: #1E40AF;
+}
+
+.medical-alert-success {
+  background: #F0FDF4;
+  border-color: var(--medical-success);
+  color: #166534;
+}
+
+.medical-alert-warning {
+  background: #FFFBEB;
+  border-color: var(--medical-warning);
+  color: #92400E;
+}
+
+.medical-alert-danger {
+  background: #FEF2F2;
+  border-color: var(--medical-danger);
+  color: #991B1B;
+}
+
+/* Accessibility Enhancements */
+.high-contrast {
+  --medical-background: #000000;
+  --medical-card: #1A1A1A;
+  --medical-text: #FFFFFF;
+  --medical-text-secondary: #CCCCCC;
+  --medical-border: #444444;
+}
+
+.high-contrast .medical-card {
+  border: 2px solid #FFFFFF;
+}
+
+.large-text {
+  font-size: 1.25rem;
+}
+
+.extra-large-text {
+  font-size: 1.5rem;
+}
+
+/* Focus states for accessibility */
+*:focus {
+  outline: 3px solid var(--medical-primary);
+  outline-offset: 2px;
+}
+
+.care-mode *:focus {
+  outline-width: 4px;
+  outline-offset: 4px;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg); 
+  }
+  50% { 
+    transform: translateY(-10px) rotate(2deg); 
   }
 }
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes pulse-gentle {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.02);
+  }
 }
 
-html {
-  transition: background-color 0.3s ease;
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+.pulse-gentle {
+  animation: pulse-gentle 2s ease-in-out infinite;
+}
+
+.slide-in-up {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.fade-in-scale {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+/* Medical Icons and Symbols */
+.medical-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, var(--medical-primary), var(--medical-secondary));
+  color: white;
+  font-size: 1.25rem;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.care-mode .medical-icon {
+  width: 4rem;
+  height: 4rem;
+  font-size: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .care-mode {
+    font-size: 1.125rem;
+  }
+  
+  .care-mode h1 { font-size: 2.5rem; }
+  .care-mode h2 { font-size: 2rem; }
+  .care-mode h3 { font-size: 1.75rem; }
+  
+  .care-mode button,
+  .care-mode .btn {
+    min-height: 3.5rem;
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .medical-card {
+    border: 1px solid #000;
+    break-inside: avoid;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--medical-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--medical-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--medical-text-secondary);
 }

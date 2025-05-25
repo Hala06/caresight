@@ -1,21 +1,32 @@
 // app/layout.tsx
-import "./globals.css";
-import type { ReactNode } from "react";
-import Navbar from "@/app/components/Navbar";
+import './globals.css'
+import type { ReactNode } from 'react'
+import { ClerkProvider } from '@clerk/nextjs'
+import { CareModeProvider } from './context/CareModeContext'
+import { ThemeProvider } from './context/ThemeContext'
+import ThreeScene from './components/ThreeScene'
 
 export const metadata = {
-  title: "Hackathon App",
-  description: "Built with Next.js",
-};
+  title: 'CareSight - Medical Accessibility Assistant',
+  description: 'AI-powered health form reader and medical assistant',
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <Navbar />
-        
-        {children}
-      </body>
-    </html>
-  );
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/dashboard"
+    >
+      <html lang="en" suppressHydrationWarning>
+        <body>
+          <ThemeProvider>
+            <CareModeProvider>
+              {children}
+            </CareModeProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
+  )
 }

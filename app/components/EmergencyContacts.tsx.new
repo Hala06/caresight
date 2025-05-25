@@ -1,0 +1,72 @@
+'use client';
+import { useState } from 'react';
+
+export default function EmergencyContacts() {
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  
+  const contacts = [
+    { name: "Dr. Sarah Smith", role: "Primary Care", phone: "555-0100" },
+    { name: "Emergency Services", role: "24/7 Emergency", phone: "911" },
+    { name: "Family (John Doe)", role: "Next of Kin", phone: "555-0200" }
+  ];
+
+  const handleAlert = () => {
+    alert(`Alerting: ${selectedContacts.join(', ')}`);
+    setSelectedContacts([]);
+  };
+
+  return (
+    <div className="bg-red-50 dark:bg-red-900 p-6 rounded-2xl shadow-lg">
+      <h2 className="text-2xl font-bold mb-4 text-red-600 dark:text-red-400">
+        🚨 Emergency Contacts
+      </h2>
+
+      <ul className="space-y-3 mb-6">
+        {contacts.map((contact, index) => (
+          <li 
+            key={index}
+            className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg"
+          >
+            <div>
+              <p className="font-semibold">{contact.name}</p>
+              <p className="text-sm opacity-75">{contact.role}</p>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <input
+                type="checkbox"
+                checked={selectedContacts.includes(contact.phone)}
+                onChange={(e) => {
+                  const phone = contact.phone;
+                  setSelectedContacts(prev => 
+                    e.target.checked 
+                      ? [...prev, phone] 
+                      : prev.filter(p => p !== phone)
+                  );
+                }}
+                className="w-5 h-5 text-red-600"
+              />
+              <a 
+                href={`tel:${contact.phone}`}
+                className="text-red-600 dark:text-red-400 hover:underline"
+              >
+                {contact.phone}
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={handleAlert}
+        disabled={selectedContacts.length === 0}
+        className="w-full bg-red-600 text-white p-4 rounded-xl hover:bg-red-700 
+          disabled:opacity-50 disabled:cursor-not-allowed transition-all
+          flex items-center justify-center gap-2"
+      >
+        🚨 Send Emergency Alert
+        <span className="text-sm opacity-75">({selectedContacts.length} selected)</span>
+      </button>
+    </div>
+  );
+}

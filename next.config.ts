@@ -1,7 +1,21 @@
-import type { NextConfig } from "next";
+// next.config.ts
+const nextConfig = {
+  images: {
+    domains: ['medical-api.example.com', 'ocr-service.example.com'],
+  },
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,POST' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' }
+        ]
+      }
+    ]
+  }
+}
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
+export default nextConfig

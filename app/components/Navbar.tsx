@@ -1,127 +1,81 @@
-"use client";
+// app/components/Navbar.tsx
+'use client';
+import Link from 'next/link';
+import { useUser, UserButton } from '@clerk/nextjs';
+import { useTheme } from '../context/ThemeContext';
+import ThemeToggle from './ThemeToggle';
+import { motion } from 'framer-motion';
 
-import Link from "next/link";
-import { useState, useEffect } from "react";
-import { Moon, Sun, Menu, X } from "lucide-react";
+interface NavbarProps {
+  transparent?: boolean;
+}
 
-export default function Navbar() {
-  const [languageOpen, setLanguageOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      document.documentElement.classList.toggle("dark", isDark);
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-    }
-  }, [isDark]);
-
-  // Load saved theme from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedTheme = localStorage.getItem("theme");
-      if (storedTheme === "dark") {
-        setIsDark(true);
-      }
-    }
-  }, []);
+export default function Navbar({ transparent = false }: NavbarProps) {
+  const { isSignedIn, user } = useUser();
 
   return (
-    <nav className="bg-white dark:bg-gray-900 text-black dark:text-white rounded-2xl shadow-md p-4 mx-4 my-4">
-      <div className="flex justify-between items-center">
-        {/* Logo + Brand */}
-        <div className="flex items-center space-x-4">
-          <img src="/next.svg" alt="Logo" className="h-10 w-10" />
-          <span className="font-bold text-lg">Hackathon</span>
-        </div>
-
-        {/* Desktop Links */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link href="/" className="hover:text-blue-600">
-            Home
-          </Link>
-          <Link href="/about" className="hover:text-blue-600">
-            About Us
-          </Link>
-          <div className="relative">
-            <button
-              onClick={() => setLanguageOpen(!languageOpen)}
-              className="hover:text-blue-600"
-            >
-              Language ▾
-            </button>
-            {languageOpen && (
-              <ul className="absolute bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-md shadow-lg mt-2 w-32">
-                <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                  English
-                </li>
-                <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                  Hindi
-                </li>
-                <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                  Tamil
-                </li>
-              </ul>
-            )}
+    <nav className={`fixed top-0 w-full z-50 border-b transition-all ${
+      transparent 
+        ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-gray-200 dark:border-gray-700' 
+        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700'
+    }`}>
+      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-lg">C</span>
           </div>
-          <Link href="/emergency" className="hover:text-red-500 font-semibold">
-            Emergency
-          </Link>
-          {/* Dark Mode Toggle */}
-          <button onClick={() => setIsDark(!isDark)}>
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+            CareSight
+          </h1>
+        </Link>
+
+        {/* Navigation Links */}
+        <div className="hidden md:flex items-center gap-6">
+          {isSignedIn ? (
+            <>
+              <Link href="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Dashboard
+              </Link>
+              <Link href="/chat" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Ask AI
+              </Link>
+              <Link href="/upload" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Upload
+              </Link>
+              <Link href="/care-mode" className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-4 py-2 rounded-full hover:shadow-lg transition-all">
+                Care Mode
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/demo" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Demo
+              </Link>
+              <Link href="/sign-in" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Sign In
+              </Link>
+              <Link href="/sign-up" className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-4 py-2 rounded-full hover:shadow-lg transition-all">
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* Mobile Menu Icon */}
-        <div className="md:hidden flex items-center gap-4">
-          <button onClick={() => setIsDark(!isDark)}>
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+        {/* Right Side - Theme Toggle & User */}
+        <div className="flex items-center gap-3">
+          <ThemeToggle />          {isSignedIn && (
+            <UserButton 
+              signInUrl="/sign-in"
+              userProfileUrl="/dashboard"
+              appearance={{
+                elements: {
+                  avatarBox: "w-10 h-10"
+                }
+              }}
+            />
+          )}
         </div>
-      </div>
-
-      {/* Mobile Dropdown */}
-      {menuOpen && (
-        <div className="md:hidden mt-4 space-y-4">
-          <Link href="/" className="block hover:text-blue-600">
-            Home
-          </Link>
-          <Link href="/about" className="block hover:text-blue-600">
-            About Us
-          </Link>
-          <div>
-            <button
-              onClick={() => setLanguageOpen(!languageOpen)}
-              className="hover:text-blue-600 w-full text-left"
-            >
-              Language ▾
-            </button>
-            {languageOpen && (
-              <ul className="bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-md mt-2 w-full">
-                <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  English
-                </li>
-                <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  Hindi
-                </li>
-                <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  Tamil
-                </li>
-              </ul>
-            )}
-          </div>
-          <Link
-            href="/emergency"
-            className="block hover:text-red-500 font-semibold"
-          >
-            Emergency
-          </Link>
-        </div>
-      )}
-    </nav>
+      </div>    </nav>
   );
 }
