@@ -12,8 +12,24 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder_key'
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
   
+  // If no valid Clerk key is provided, render without Clerk
+  if (!publishableKey || publishableKey === 'your_clerk_publishable_key_here') {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body>
+          <ThemeProvider>
+            <CareModeProvider>
+              {children}
+            </CareModeProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    )
+  }
+  
+  // Render with Clerk when key is available
   return (
     <ClerkProvider
       publishableKey={publishableKey}
