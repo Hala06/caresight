@@ -271,7 +271,7 @@ export default function Appointments() {
                   </div>
 
                   <div className="flex flex-col gap-2 lg:w-48">
-                    {appointment.status === 'upcoming' || appointment.status === 'confirmed' ? (
+                    {appointment.status === 'confirmed' ? (
                       <>
                         <button className="px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-all">
                           🔔 Remind Me
