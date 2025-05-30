@@ -17,6 +17,13 @@ import OnboardingProvider from './OnboardingProvider';
 import Hero from './Hero';
 import FeatureShowcase from './FeatureShowcase';
 import HealthOverview from './HealthOverview';
+import dynamic from 'next/dynamic';
+
+// Dynamic import for ThreeScene to avoid SSR issues
+const ThreeScene = dynamic(() => import('./ThreeScene'), { 
+  ssr: false,
+  loading: () => <ComponentLoading />
+});
 
 export default function HomePage() {
   const [mounted, setMounted] = React.useState(false);
@@ -41,17 +48,41 @@ export default function HomePage() {
 
         <ErrorBoundary fallback={<HeroError />}>
           <Hero />
-        </ErrorBoundary>{/* 3D Model Section - Temporarily Disabled */}
-        <div className="py-12 bg-gradient-to-r from-blue-50 to-teal-50 dark:from-gray-800 dark:to-blue-900">
+        </ErrorBoundary>        {/* 3D Interactive Health Model */}
+        <section className="py-12 bg-gradient-to-r from-blue-50 to-teal-50 dark:from-gray-800 dark:to-blue-900">
           <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-white">
-              Interactive Health Visualization
-            </h2>
-            <div className="h-96 rounded-lg overflow-hidden shadow-lg bg-white dark:bg-gray-800 flex items-center justify-center">
-              <p className="text-gray-600 dark:text-gray-300">3D visualization temporarily disabled for stability</p>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+                Interactive Health Visualization
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                Explore your health data through our interactive 3D model. Click on different organs to learn more about your health metrics.
+              </p>
+            </div>
+            
+            <div className="h-96 rounded-lg overflow-hidden shadow-lg bg-white dark:bg-gray-800 relative">
+              <ErrorBoundary 
+                fallback={
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center p-6">
+                      <div className="text-6xl mb-4">🏥</div>
+                      <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        3D Visualization Unavailable
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Interactive health model couldn't load
+                      </p>
+                    </div>
+                  </div>
+                }
+              >
+                <Suspense fallback={<ComponentLoading />}>
+                  <ThreeScene className="w-full h-full" />
+                </Suspense>
+              </ErrorBoundary>
             </div>
           </div>
-        </div>        <ErrorBoundary fallback={<FeatureShowcaseError />}>
+        </section><ErrorBoundary fallback={<FeatureShowcaseError />}>
           <FeatureShowcase />
         </ErrorBoundary>
 

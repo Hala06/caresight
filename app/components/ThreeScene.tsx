@@ -1,208 +1,232 @@
-// app/components/ThreeScene.tsx
-'use client'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Float, OrbitControls, useGLTF, Text, Sphere, Box } from '@react-three/drei'
-import { useRef } from 'react'
-import * as THREE from 'three'
+'use client';
 
-// 3D Heart Model Component
-function HeartModel() {
-  const heartRef = useRef<THREE.Group>(null)
-  
-  // Try to load the heart model, with fallback to basic geometry
-  let heart;
-  try {
-    heart = useGLTF('/heart.glb')
-  } catch (error) {
-    console.log('Heart model not found, using fallback')
-  }
+import { Suspense, useState, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 
-  useFrame((state) => {
-    if (heartRef.current) {
-      heartRef.current.rotation.y = Math.sin(state.clock.elapsedTime) * 0.3
-      heartRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.1
-    }
-  })
+// Dynamic import with no SSR to avoid webpack issues
+const Canvas = dynamic(
+  () => import('@react-three/fiber').then((mod) => mod.Canvas),
+  { ssr: false }
+);
 
-  return (
-    <Float speed={2} rotationIntensity={0.1} floatingRange={[0, 0.2]}>
-      <group ref={heartRef} scale={[2, 2, 2]}>
-        {heart?.scene ? (
-          <primitive object={heart.scene} />
-        ) : (
-          // Fallback heart shape made from spheres - Much Brighter
-          <group>
-            <mesh position={[0, 0.3, 0]}>
-              <sphereGeometry args={[0.5, 32, 32]} />
-              <meshStandardMaterial 
-                color="#ff4757" 
-                metalness={0.1} 
-                roughness={0.2} 
-                emissive="#ff1744"
-                emissiveIntensity={0.1}
-              />
-            </mesh>
-            <mesh position={[-0.3, 0.6, 0]}>
-              <sphereGeometry args={[0.3, 32, 32]} />
-              <meshStandardMaterial 
-                color="#ff4757" 
-                metalness={0.1} 
-                roughness={0.2}
-                emissive="#ff1744"
-                emissiveIntensity={0.1}
-              />
-            </mesh>
-            <mesh position={[0.3, 0.6, 0]}>
-              <sphereGeometry args={[0.3, 32, 32]} />
-              <meshStandardMaterial 
-                color="#ff4757" 
-                metalness={0.1} 
-                roughness={0.2}
-                emissive="#ff1744"
-                emissiveIntensity={0.1}
-              />
-            </mesh>
-          </group>
-        )}
-      </group>
-    </Float>
-  )
+const OrbitControls = dynamic(
+  () => import('@react-three/drei').then((mod) => mod.OrbitControls),
+  { ssr: false }
+);
+
+const Text = dynamic(
+  () => import('@react-three/drei').then((mod) => mod.Text),
+  { ssr: false }
+);
+
+const Sphere = dynamic(
+  () => import('@react-three/drei').then((mod) => mod.Sphere),
+  { ssr: false }
+);
+
+interface ThreeSceneProps {
+  className?: string;
 }
 
-// Floating Medical Icons
-const MedicalIcon = ({ position, children, color = "#3B82F6" }: any) => {
-  const meshRef = useRef<THREE.Mesh>(null)
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime + position[0]) * 0.2
-      meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.5 + position[1]) * 0.1
-    }
-  })
-
+// Loading component
+function SceneLoading() {
   return (
-    <Float speed={1.5} rotationIntensity={0.5} floatingRange={[0, 0.3]}>
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading 3D Health Visualization...</p>
+      </div>
+    </div>
+  );
+}
+
+// 3D Scene Content Component
+function SceneContent() {
+  const [hoveredOrgan, setHoveredOrgan] = useState<string | null>(null);
+  
+  // Heart component
+  function Heart({ position, onClick }: { position: [number, number, number]; onClick: () => void }) {
+    return (
+      <Sphere
+        position={position}
+        args={[0.8, 32, 32]}
+        onClick={onClick}
+        onPointerOver={() => setHoveredOrgan('heart')}
+        onPointerOut={() => setHoveredOrgan(null)}
+      >
+        <meshStandardMaterial 
+          color={hoveredOrgan === 'heart' ? '#ef4444' : '#dc2626'} 
+          emissive={hoveredOrgan === 'heart' ? '#7f1d1d' : '#000000'}
+        />
+      </Sphere>
+    );
+  }
+
+  // Brain component
+  function Brain({ position, onClick }: { position: [number, number, number]; onClick: () => void }) {
+    return (
+      <Sphere
+        position={position}
+        args={[0.7, 32, 32]}
+        onClick={onClick}
+        onPointerOver={() => setHoveredOrgan('brain')}
+        onPointerOut={() => setHoveredOrgan(null)}
+      >
+        <meshStandardMaterial 
+          color={hoveredOrgan === 'brain' ? '#8b5cf6' : '#7c3aed'} 
+          emissive={hoveredOrgan === 'brain' ? '#3730a3' : '#000000'}
+        />
+      </Sphere>
+    );
+  }
+
+  // Lungs component
+  function Lungs({ position, onClick }: { position: [number, number, number]; onClick: () => void }) {
+    return (
       <group position={position}>
-        <mesh ref={meshRef}>
-          <sphereGeometry args={[0.4, 32, 32]} />
-          <meshStandardMaterial 
-            color={color} 
-            metalness={0.1} 
-            roughness={0.3}
-            transparent
-            opacity={0.8}
-          />
-        </mesh>
-        <Text
-          position={[0, 0, 0.5]}
-          fontSize={0.4}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
+        <Sphere
+          position={[-0.5, 0, 0]}
+          args={[0.6, 32, 32]}
+          onClick={onClick}
+          onPointerOver={() => setHoveredOrgan('lungs')}
+          onPointerOut={() => setHoveredOrgan(null)}
         >
-          {children}
-        </Text>
+          <meshStandardMaterial 
+            color={hoveredOrgan === 'lungs' ? '#06b6d4' : '#0891b2'} 
+            emissive={hoveredOrgan === 'lungs' ? '#164e63' : '#000000'}
+          />
+        </Sphere>
+        <Sphere
+          position={[0.5, 0, 0]}
+          args={[0.6, 32, 32]}
+          onClick={onClick}
+          onPointerOver={() => setHoveredOrgan('lungs')}
+          onPointerOut={() => setHoveredOrgan(null)}
+        >
+          <meshStandardMaterial 
+            color={hoveredOrgan === 'lungs' ? '#06b6d4' : '#0891b2'} 
+            emissive={hoveredOrgan === 'lungs' ? '#164e63' : '#000000'}
+          />
+        </Sphere>
       </group>
-    </Float>
-  )
-}
-
-// Particle System for ambient effect
-function Particles() {
-  const particlesRef = useRef<THREE.Points>(null)
-  
-  useFrame((state) => {
-    if (particlesRef.current) {
-      particlesRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.05
-      particlesRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.05) * 0.1
-    }
-  })
-
-  const particleCount = 50
-  const positions = new Float32Array(particleCount * 3)
-  
-  for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 20
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 20
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 20
+    );
   }
 
   return (
-    <points ref={particlesRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={particleCount}
-          array={positions}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial size={0.05} color="#60A5FA" transparent opacity={0.6} />
-    </points>
-  )
-}
+    <>
+      {/* Lighting */}
+      <ambientLight intensity={0.6} />
+      <pointLight position={[10, 10, 10]} intensity={1} />
+      <directionalLight position={[-10, -10, -5]} intensity={0.5} />
 
-export default function ThreeScene() {
-  return (
-    <div className="h-64 sm:h-80 md:h-96 w-full relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-teal-50/30 rounded-3xl"></div>
-      <Canvas 
-        camera={{ position: [0, 0, 8], fov: 45 }}
-        className="w-full h-full"
-        style={{ touchAction: 'none' }}
-      >{/* Enhanced Lighting - Much Brighter */}
-        <ambientLight intensity={1.2} color="#ffffff" />
-        <directionalLight position={[10, 10, 10]} intensity={1.5} color="#ffffff" />
-        <directionalLight position={[-10, 10, 10]} intensity={1.0} color="#ffffff" />
-        <pointLight position={[5, 5, 5]} intensity={1.2} color="#ffffff" />
-        <pointLight position={[-5, -5, 5]} intensity={0.8} color="#60A5FA" />
-        <hemisphereLight args={["#ffffff", "#f0f9ff", 0.8]} />
-        
-        {/* Main heart model */}
-        <HeartModel />
-        
-        {/* Floating medical icons around the heart */}
-        <MedicalIcon position={[-3, 2, 0]} color="#10B981">💊</MedicalIcon>
-        <MedicalIcon position={[3, -1, 0]} color="#8B5CF6">🩺</MedicalIcon>
-        <MedicalIcon position={[-2, -2, 0]} color="#F59E0B">📋</MedicalIcon>
-        <MedicalIcon position={[2, 2, 0]} color="#EF4444">⚕️</MedicalIcon>
-        <MedicalIcon position={[0, 3, -2]} color="#06B6D4">🏥</MedicalIcon>
-        <MedicalIcon position={[0, -3, -2]} color="#84CC16">👩‍⚕️</MedicalIcon>
-        
-        {/* Ambient particles */}
-        <Particles />
-          {/* Interactive text */}
+      {/* Interactive organs */}
+      <Heart 
+        position={[0, 0, 0]} 
+        onClick={() => console.log('Heart clicked - show heart health info')} 
+      />
+      <Brain 
+        position={[0, 3, 0]} 
+        onClick={() => console.log('Brain clicked - show mental health info')} 
+      />
+      <Lungs 
+        position={[0, -2, 0]} 
+        onClick={() => console.log('Lungs clicked - show respiratory info')} 
+      />
+
+      {/* Labels */}
+      {hoveredOrgan && (
         <Text
-          position={[0, -4, 0]}
-          fontSize={0.8}
-          color="#1F2937"
+          position={[3, 2, 0]}
+          fontSize={0.5}
+          color="#1f2937"
           anchorX="center"
           anchorY="middle"
         >
-          Healthcare Made Simple
+          {hoveredOrgan === 'heart' && 'Heart Health'}
+          {hoveredOrgan === 'brain' && 'Mental Wellness'}
+          {hoveredOrgan === 'lungs' && 'Respiratory Health'}
         </Text>
+      )}
+
+      {/* Camera controls */}
+      <OrbitControls 
+        enablePan={true}
+        enableZoom={true}
+        enableRotate={true}
+        maxDistance={10}
+        minDistance={3}
+      />
+    </>
+  );
+}
+
+export default function ThreeScene({ className = "" }: ThreeSceneProps) {
+  const [isClient, setIsClient] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Don't render on server side
+  if (!isClient) {
+    return <SceneLoading />;
+  }
+
+  // Error fallback
+  if (error) {
+    return (
+      <div className={`w-full h-full flex items-center justify-center bg-gray-100 ${className}`}>
+        <div className="text-center p-6">
+          <div className="text-6xl mb-4">🏥</div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">3D Visualization Unavailable</h3>
+          <p className="text-gray-600 text-sm">Interactive health model couldn't load</p>
+          <button 
+            onClick={() => setError(null)}
+            className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  try {
+    return (
+      <div className={`w-full h-full ${className}`}>
+        <Suspense fallback={<SceneLoading />}>
+          <Canvas
+            camera={{ position: [5, 2, 5], fov: 60 }}
+            style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%)' }}
+            onError={(error) => {
+              console.error('Three.js Canvas error:', error);
+              setError('Failed to initialize 3D scene');
+            }}
+          >
+            <SceneContent />
+          </Canvas>
+        </Suspense>
         
-        <OrbitControls 
-          enableZoom={false} 
-          enablePan={false}
-          autoRotate
-          autoRotateSpeed={0.5}
-          maxPolarAngle={Math.PI / 2}
-          minPolarAngle={Math.PI / 3}
-        />
-      </Canvas>
-      
-      {/* Overlay content - Responsive */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-4">
-        <div className="text-center max-w-2xl">
-          <h3 className="text-responsive-3xl font-bold text-gray-800 mb-4">
-            Advanced AI Technology
-          </h3>
-          <p className="text-responsive-lg text-gray-600">
-            Powered by cutting-edge machine learning to understand and simplify complex medical information
+        {/* Instructions overlay */}
+        <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 rounded-lg p-3 shadow-lg max-w-sm">
+          <h4 className="font-semibold text-gray-800 mb-1">Interactive Health Model</h4>
+          <p className="text-sm text-gray-600">
+            Click and drag to rotate • Scroll to zoom • Click organs for health insights
           </p>
         </div>
       </div>
-    </div>
-  )
+    );
+  } catch (error) {
+    console.error('ThreeScene render error:', error);
+    return (
+      <div className={`w-full h-full flex items-center justify-center bg-gray-100 ${className}`}>
+        <div className="text-center p-6">
+          <div className="text-6xl mb-4">🏥</div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">3D Visualization Unavailable</h3>
+          <p className="text-gray-600 text-sm">Your browser doesn't support 3D graphics</p>
+        </div>
+      </div>
+    );
+  }
 }
