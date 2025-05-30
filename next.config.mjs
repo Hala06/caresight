@@ -1,5 +1,18 @@
 // next.config.mjs
 const nextConfig = {
+  experimental: {
+    esmExternals: false,
+  },
+  webpack: (config, { isServer }) => {
+    // Fix for webpack bundling issues
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
+    return config;
+  },
   images: {
     domains: ['medical-api.example.com', 'ocr-service.example.com'],
   },

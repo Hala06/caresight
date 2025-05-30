@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
-import VoiceAssistant from '../components/VoiceAssistant';
 
 interface Message {
   id: string;
@@ -368,10 +367,8 @@ export default function ChatPage() {
               </div>
             </div>          </motion.div>
         </motion.div>
-      </div>
-
-      {/* Voice Assistant for hands-free interaction */}
-      <VoiceAssistant />
+      </div>      {/* Voice Assistant for hands-free interaction - Temporarily disabled for stability */}
+      {/* <VoiceAssistant /> */}
     </div>
   );
 }

@@ -2,53 +2,76 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'demo-key');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: Request) {
+  let message = '';
+  let context = '';
+  
   try {
-    const { message, context } = await request.json();
+    const body = await request.json();
+    message = body.message;
+    context = body.context;
 
     if (!message) {
       return NextResponse.json(
         { error: 'Message is required' },
         { status: 400 }
       );
-    }    // Enhanced medical-focused prompt with comprehensive knowledge base
-    const medicalPrompt = `You are CareSight, a knowledgeable medical assistant that explains health terms and concepts in simple, caring language. You can answer questions about:
+    }
 
-✅ **WHAT YOU CAN HELP WITH:**
-- Medical terminology (What is hypertension? What does "nodes are positive" mean?)
-- General health conditions and their meanings
-- Basic anatomy and how body systems work
-- Common medical procedures and tests
-- Health prevention and wellness concepts
-- Medication types and general information
-- Medical abbreviations and terms doctors use
+    // Check if API key is available
+    if (!process.env.GEMINI_API_KEY) {
+      return getIntelligentFallbackResponse(message);
+    }
 
-**SAMPLE RESPONSES FOR COMMON QUESTIONS:**
-- "What is hypertension?" → "High blood pressure - when blood pushes too hard against artery walls"
-- "My doctor said my nodes are positive - what does that mean?" → "Lymph nodes showing signs of abnormal cells, needs follow-up with your doctor"
-- "What questions can you answer?" → List medical topics you can explain
+    // Enhanced medical-focused prompt for comprehensive health education
+    const medicalPrompt = `You are CareSight, a knowledgeable and caring medical education assistant. Your role is to explain health topics in simple, accessible language while being responsible about medical advice.
 
-❌ **IMPORTANT LIMITATIONS:**
-- **Never provide specific medical advice or treatment recommendations**
-- **Never diagnose conditions or interpret personal test results**
-- **Always encourage consulting healthcare providers for personal concerns**
-- **If someone asks about specific symptoms or what to do medically, refer them to their doctor**
-
-**Communication Style:**
-- Use simple, everyday language with medical terms explained in parentheses
+CORE PRINCIPLES:
+- Provide clear, educational information about medical topics
+- Use simple language that elderly and diverse users can understand
 - Be warm, supportive, and encouraging
-- Break complex topics into easy-to-understand pieces
-- Use analogies that relate to everyday life
-- Structure responses clearly with bullet points when helpful
-- Always end with encouragement to discuss specifics with their healthcare team
+- Give practical information when appropriate
+- Always distinguish between education and personal medical advice
 
-Context: ${context ? `Previous conversation: ${context}` : 'Starting new conversation'}
+WHAT YOU CAN AND SHOULD DO:
+✅ Explain medical conditions (What is high blood pressure? What is diabetes?)
+✅ Define medical terms and abbreviations (What is ALOC? What does "nodes are positive" mean?)
+✅ Describe common symptoms and what they generally indicate
+✅ Explain medical procedures and tests in simple terms
+✅ Provide general guidance on when to seek medical care
+✅ Offer wellness and prevention information
+✅ Explain medication types and how they generally work
+✅ Help users understand what questions to ask their doctor
+
+SAMPLE EXPERT RESPONSES:
+Q: "What is high blood pressure?"
+A: "High blood pressure (hypertension) means your blood pushes too hard against your artery walls. Think of it like water pressure in a garden hose - if the pressure is too high, it can damage the hose over time. Normal blood pressure is usually around 120/80. High blood pressure can be managed with medication, diet changes, and exercise."
+
+Q: "When should I call my doctor?"
+A: "You should call your doctor if you experience: severe chest pain, difficulty breathing, sudden severe headache, signs of stroke (face drooping, arm weakness, speech problems), high fever that won't break, severe abdominal pain, or any symptoms that worry you significantly. Trust your instincts - if something feels seriously wrong, it's always better to call."
+
+Q: "What is ALOC?"
+A: "ALOC stands for 'Altered Level of Consciousness.' It means someone is not as alert or aware as normal. This could range from being drowsy or confused to being completely unresponsive. It's a medical concern that doctors take seriously because it can indicate various conditions affecting the brain."
+
+COMMUNICATION STYLE:
+- Use analogies and everyday comparisons
+- Break complex topics into simple pieces
+- Be encouraging and reassuring when appropriate
+- Structure responses clearly
+- End with practical next steps when relevant
+
+BOUNDARIES:
+- For personal symptoms: Provide education but encourage medical consultation
+- For serious symptoms: Clearly advise seeking immediate medical care
+- For medication questions: Explain general concepts but defer to healthcare providers
+
+Context: ${context ? `Previous conversation: ${context}` : 'New conversation'}
 
 User Question: "${message}"
 
-Provide a helpful, educational response. If the question is about personal medical advice or specific symptoms, kindly redirect them to consult their healthcare provider while still offering general educational information about the topic if possible.`
+Provide a helpful, educational response that balances being informative with being medically responsible.`;
 
     const model = genAI.getGenerativeModel({ 
       model: 'gemini-pro',
@@ -56,7 +79,7 @@ Provide a helpful, educational response. If the question is about personal medic
         temperature: 0.7,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 800,
+        maxOutputTokens: 1000,
       }
     });
 
@@ -64,39 +87,73 @@ Provide a helpful, educational response. If the question is about personal medic
     const response = await result.response;
     let reply = response.text();
 
-    // Post-process response to ensure accessibility
+    // Clean up formatting for better accessibility
     reply = reply
       .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
       .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
       .replace(/#{1,6}\s/g, '') // Remove headers
       .trim();
 
-    // Add helpful closing
-    if (!reply.includes('healthcare provider') && !reply.includes('doctor')) {
-      reply += '\n\n💙 Remember: This is general information only. Please discuss any specific concerns with your healthcare provider.';
-    }    return NextResponse.json({ 
+    return NextResponse.json({ 
       response: reply,
       timestamp: new Date().toISOString(),
-      safety: 'This response has been reviewed for medical safety guidelines.'
+      source: 'gemini-ai'
     });
 
   } catch (error) {
     console.error('Chat API error:', error);
-    
-    // Enhanced fallback responses based on common topics
-    const fallbackResponses = [
-      "I'm here to help with your health questions! While I can provide general educational information, it's always best to discuss specific medical concerns with your healthcare provider. They know your medical history and can give you personalized advice. What would you like to learn about today?",
-      
-      "I understand you have health questions, and I'm here to help explain things in simple terms. For any specific medical concerns or symptoms, please reach out to your doctor or healthcare team. They're the best people to give you personalized advice. How can I help you understand health topics better?",
-      
-      "Thank you for trusting CareSight with your health questions. I can help explain medical topics in simple language, but remember that every person's health needs are different. Your healthcare provider is always the best source for advice about your specific situation. What health topic would you like to learn about?"
-    ];
-    
-    const randomResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-      return NextResponse.json({ 
-      response: randomResponse,
+    return getIntelligentFallbackResponse(message);
+  }
+}
+
+function getIntelligentFallbackResponse(message: string): NextResponse {
+  const lowerMessage = message.toLowerCase();
+  
+  // Intelligent fallback responses based on question content
+  if (lowerMessage.includes('blood pressure') || lowerMessage.includes('hypertension')) {
+    return NextResponse.json({
+      response: "High blood pressure (hypertension) means your blood pushes too hard against your artery walls - like water pressure being too high in a garden hose. Normal is usually around 120/80. It can often be managed with lifestyle changes and medication. Your doctor can check this easily and help you manage it if needed.",
       timestamp: new Date().toISOString(),
-      fallback: true
+      source: 'fallback'
     });
   }
+  
+  if (lowerMessage.includes('when') && (lowerMessage.includes('call') || lowerMessage.includes('doctor') || lowerMessage.includes('emergency'))) {
+    return NextResponse.json({
+      response: "You should call your doctor for: severe chest pain, difficulty breathing, sudden severe headache, signs of stroke (face drooping, arm weakness, speech problems), high fever, severe abdominal pain, or any symptoms that seriously worry you. Call 911 for life-threatening emergencies. Trust your instincts - if something feels seriously wrong, it's better to call.",
+      timestamp: new Date().toISOString(),
+      source: 'fallback'
+    });
+  }
+  
+  if (lowerMessage.includes('aloc')) {
+    return NextResponse.json({
+      response: "ALOC stands for 'Altered Level of Consciousness.' It means someone is not as alert or aware as normal - they might be drowsy, confused, or unresponsive. This is something doctors take seriously because it can indicate various conditions affecting the brain. If someone has a significant change in their level of consciousness, they should get medical attention.",
+      timestamp: new Date().toISOString(),
+      source: 'fallback'
+    });
+  }
+  
+  if (lowerMessage.includes('diabetes')) {
+    return NextResponse.json({
+      response: "Diabetes is when your body has trouble controlling blood sugar levels. Think of it like your body's sugar processing system not working properly. There are two main types: Type 1 (body doesn't make insulin) and Type 2 (body doesn't use insulin well). It can be managed with diet, exercise, and sometimes medication. Regular monitoring and working with your healthcare team is important.",
+      timestamp: new Date().toISOString(),
+      source: 'fallback'
+    });
+  }
+  
+  if (lowerMessage.includes('what is') || lowerMessage.includes('what does') || lowerMessage.includes('meaning')) {
+    return NextResponse.json({
+      response: "I'd be happy to help explain medical terms and conditions! I can help you understand things like medical conditions, common symptoms, procedures, and when to seek care. Could you tell me the specific medical term or condition you'd like me to explain? I'll break it down in simple, easy-to-understand language.",
+      timestamp: new Date().toISOString(),
+      source: 'fallback'
+    });
+  }
+  
+  // Default helpful response
+  return NextResponse.json({
+    response: "I'm here to help explain medical topics in simple terms! I can help you understand medical conditions, symptoms, procedures, medications, and when to seek care. What specific health topic would you like me to explain? Feel free to ask about things like 'What is high blood pressure?' or 'When should I call my doctor?'",
+    timestamp: new Date().toISOString(),
+    source: 'fallback'
+  });
 }

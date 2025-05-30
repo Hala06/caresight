@@ -1,7 +1,6 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ComponentLoading, FullScreenLoading } from './LoadingStates';
@@ -14,12 +13,10 @@ import {
 } from './ErrorStates';
 import Navbar from './Navbar';
 import Footer from './Footer';
-
-const OnboardingProvider = dynamic(() => import('./OnboardingProvider'), { ssr: false });
-const Hero = dynamic(() => import('./Hero'), { ssr: false });
-const FeatureShowcase = dynamic(() => import('./FeatureShowcase'), { ssr: false });
-const HealthOverview = dynamic(() => import('./HealthOverview'), { ssr: false });
-const ThreeScene = dynamic(() => import('./ThreeScene'), { ssr: false });
+import OnboardingProvider from './OnboardingProvider';
+import Hero from './Hero';
+import FeatureShowcase from './FeatureShowcase';
+import HealthOverview from './HealthOverview';
 
 export default function HomePage() {
   const [mounted, setMounted] = React.useState(false);
@@ -38,43 +35,28 @@ export default function HomePage() {
       <Navbar />
       
       {/* Main Content */}
-      <main className="pt-20">
-        <ErrorBoundary fallback={<OnboardingError />}>
-          <Suspense fallback={<ComponentLoading />}>
-            <OnboardingProvider />
-          </Suspense>
-        </ErrorBoundary>        <ErrorBoundary fallback={<HeroError />}>
-          <Suspense fallback={<ComponentLoading />}>
-            <Hero />
-          </Suspense>
+      <main className="pt-20">        <ErrorBoundary fallback={<OnboardingError />}>
+          <OnboardingProvider />
         </ErrorBoundary>
 
-        {/* 3D Model Section */}
-        <ErrorBoundary fallback={<div className="text-center p-8">3D model temporarily unavailable</div>}>
-          <Suspense fallback={<ComponentLoading />}>
-            <div className="py-12 bg-gradient-to-r from-blue-50 to-teal-50 dark:from-gray-800 dark:to-blue-900">
-              <div className="container mx-auto px-6">
-                <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-white">
-                  Interactive 3D Health Visualization
-                </h2>
-                <div className="h-96 rounded-lg overflow-hidden shadow-lg">
-                  <ThreeScene />
-                </div>
-              </div>
+        <ErrorBoundary fallback={<HeroError />}>
+          <Hero />
+        </ErrorBoundary>{/* 3D Model Section - Temporarily Disabled */}
+        <div className="py-12 bg-gradient-to-r from-blue-50 to-teal-50 dark:from-gray-800 dark:to-blue-900">
+          <div className="container mx-auto px-6">
+            <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-white">
+              Interactive Health Visualization
+            </h2>
+            <div className="h-96 rounded-lg overflow-hidden shadow-lg bg-white dark:bg-gray-800 flex items-center justify-center">
+              <p className="text-gray-600 dark:text-gray-300">3D visualization temporarily disabled for stability</p>
             </div>
-          </Suspense>
-        </ErrorBoundary>
-
-        <ErrorBoundary fallback={<FeatureShowcaseError />}>
-          <Suspense fallback={<ComponentLoading />}>
-            <FeatureShowcase />
-          </Suspense>
+          </div>
+        </div>        <ErrorBoundary fallback={<FeatureShowcaseError />}>
+          <FeatureShowcase />
         </ErrorBoundary>
 
         <ErrorBoundary fallback={<HealthOverviewError />}>
-          <Suspense fallback={<ComponentLoading />}>
-            <HealthOverview />
-          </Suspense>
+          <HealthOverview />
         </ErrorBoundary>
       </main>
 

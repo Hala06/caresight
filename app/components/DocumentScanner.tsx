@@ -23,6 +23,8 @@ export default function DocumentScanner() {
   const [preview, setPreview] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [progress, setProgress] = useState(0);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const onDrop = useCallback(async (files: File[]) => {
     const file = files[0];
@@ -38,12 +40,12 @@ export default function DocumentScanner() {
       'application/pdf': ['.pdf']
     }
   });
-
   const performOCR = async () => {
     if (!preview) return;
 
     setIsProcessing(true);
     setProgress(0);
+    setAiSummary(null); // Reset AI summary when new OCR starts
 
     try {
       // Create Tesseract worker
@@ -158,6 +160,50 @@ export default function DocumentScanner() {
       default: return 'Unknown Document';
     }
   };
+
+  const generateAISummary = async () => {
+    if (!scanResult) return;
+    
+    setIsGeneratingAI(true);
+    
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `Please analyze this medical document and provide a clear, simple summary. Focus on the key information that a patient needs to understand:
+
+Document Type: ${getDocumentTypeName(scanResult.documentType)}
+Extracted Text: ${scanResult.extractedText}
+
+Please provide:
+1. What this document is (in simple terms)
+2. Key medications or treatments mentioned
+3. Important dates or dosages
+4. What the patient should do next
+5. Any important warnings or instructions
+
+Make it easy to understand for elderly patients and use simple language.`,
+          context: 'document_analysis'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAiSummary(data.response);
+      } else {
+        setAiSummary("I had trouble analyzing this document. The OCR extracted the text successfully, but I couldn't process it for a summary. You can still view the extracted text above.");
+      }
+    } catch (error) {
+      console.error('AI Summary error:', error);
+      setAiSummary("I had trouble generating a summary for this document. You can still view all the extracted information above.");
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
       <h2 className="text-2xl font-bold mb-4 text-green-600 dark:text-green-400 flex items-center gap-2">
@@ -240,18 +286,25 @@ export default function DocumentScanner() {
               Extract Text
             </>
           )}
-        </motion.button>
-        
-        <motion.button
+        </motion.button>        <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          disabled={!scanResult}
+          disabled={!scanResult || isProcessing || isGeneratingAI}
           className="bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 
             disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-          onClick={() => alert('AI Summary feature coming soon!')}
+          onClick={generateAISummary}
         >
-          <span>🧠</span>
-          AI Summary
+          {isGeneratingAI ? (
+            <>
+              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+              Analyzing...
+            </>
+          ) : (
+            <>
+              <span>🧠</span>
+              AI Summary
+            </>
+          )}
         </motion.button>
       </div>
 
@@ -338,6 +391,39 @@ export default function DocumentScanner() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* AI Summary Section */}
+          {aiSummary && (
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+              <h3 className="font-semibold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
+                <span>🧠</span>
+                AI Analysis & Summary
+              </h3>
+              <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                {aiSummary}
+              </div>
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => navigator.clipboard.writeText(aiSummary)}
+                  className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition-colors"
+                >
+                  📋 Copy Summary
+                </button>
+                <button
+                  onClick={() => {
+                    if ('speechSynthesis' in window) {
+                      const utterance = new SpeechSynthesisUtterance(aiSummary);
+                      utterance.rate = 0.8;
+                      speechSynthesis.speak(utterance);
+                    }
+                  }}
+                  className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+                >
+                  🔊 Read Aloud
+                </button>
               </div>
             </div>
           )}
