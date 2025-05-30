@@ -77,8 +77,8 @@ const mockAppointments: Appointment[] = [
 export default function Appointments() {
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
   
-  // Try to use Clerk if available, otherwise skip authentication for build
-  let isSignedIn = true;
+  // Handle Clerk authentication safely for build time
+  let isSignedIn = false;
   let user = null;
   
   try {
@@ -90,7 +90,7 @@ export default function Appointments() {
       redirect('/sign-in');
     }
   } catch (error) {
-    // Clerk is not available, continue without authentication for build
+    // Clerk is not available during build, continue without authentication
     console.log('Clerk not available, skipping authentication');
   }
 

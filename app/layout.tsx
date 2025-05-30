@@ -1,47 +1,28 @@
-// app/layout.tsx
-import './globals.css'
-import type { ReactNode } from 'react'
+import { Inter } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
-import { CareModeProvider } from './context/CareModeContext'
 import { ThemeProvider } from './context/ThemeContext'
-import ThreeScene from './components/ThreeScene'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'CareSight - Medical Accessibility Assistant',
-  description: 'AI-powered health form reader and medical assistant',
+  title: 'CareSight - Healthcare Technology Platform',
+  description: 'Advanced healthcare monitoring and care coordination platform',
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  
-  // If no valid Clerk key is provided, render without Clerk
-  if (!publishableKey || publishableKey === 'your_clerk_publishable_key_here') {
-    return (
-      <html lang="en" suppressHydrationWarning>
-        <body>
-          <ThemeProvider>
-            <CareModeProvider>
-              {children}
-            </CareModeProvider>
-          </ThemeProvider>
-        </body>
-      </html>
-    )
-  }
-  
-  // Render with Clerk when key is available
-  return (
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {  return (
     <ClerkProvider
-      publishableKey={publishableKey}
       signInFallbackRedirectUrl="/dashboard"
       signUpFallbackRedirectUrl="/dashboard"
     >
-      <html lang="en" suppressHydrationWarning>
-        <body>
+      <html lang="en">
+        <body className={inter.className}>
           <ThemeProvider>
-            <CareModeProvider>
-              {children}
-            </CareModeProvider>
+            {children}
           </ThemeProvider>
         </body>
       </html>

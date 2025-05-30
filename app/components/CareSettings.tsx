@@ -118,19 +118,17 @@ export default function CareSettings() {
       window.speechSynthesis.speak(utterance);
     }
   };
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
-      {/* Header */}
-      <div 
-        className="p-6 border-b border-gray-200 dark:border-gray-700 cursor-pointer"
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-600">
+      {/* Header */}      <div 
+        className="p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-blue-600 dark:text-purple-400 flex items-center gap-3">
             <span>♿</span>
             Care Mode Settings
-            <span className="text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
+            <span className="text-sm bg-blue-100 dark:bg-purple-900/30 text-blue-800 dark:text-purple-300 px-2 py-1 rounded-full">
               Accessibility
             </span>
           </h2>
@@ -154,16 +152,14 @@ export default function CareSettings() {
         className="overflow-hidden"
       >
         <div className="p-6 space-y-6">
-          {/* Visual Settings */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+          {/* Visual Settings */}          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
               <span>👁️</span>
               Visual Settings
             </h3>
 
             {/* Text Size */}
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
                 Text Size
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -176,7 +172,7 @@ export default function CareSettings() {
                     }}
                     className={`p-3 rounded-lg border-2 transition-all ${
                       settings.textSize === size
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-purple-900/20 dark:border-purple-400'
                         : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     } ${size === 'large' ? 'text-lg' : size === 'extra-large' ? 'text-xl' : 'text-base'}`}
                   >
@@ -184,11 +180,9 @@ export default function CareSettings() {
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Contrast */}
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            </div>            {/* Contrast */}
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
                 Contrast Mode
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -201,7 +195,7 @@ export default function CareSettings() {
                     }}
                     className={`p-3 rounded-lg border-2 transition-all ${
                       settings.contrast === contrast
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-purple-900/20 dark:border-purple-400'
                         : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     } ${contrast === 'high' ? 'bg-black text-white border-white' : ''}`}
                   >
@@ -209,11 +203,9 @@ export default function CareSettings() {
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Button Size */}
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            </div>            {/* Button Size */}
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
                 Button Size
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -226,7 +218,7 @@ export default function CareSettings() {
                     }}
                     className={`${size === 'large' ? 'p-4 text-lg' : 'p-3'} rounded-lg border-2 transition-all ${
                       settings.buttonSize === size
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-purple-900/20 dark:border-purple-400'
                         : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
@@ -235,18 +227,16 @@ export default function CareSettings() {
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* Audio Settings */}
+          </div>          {/* Audio Settings */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
               <span>🔊</span>
               Audio Settings
             </h3>
 
             {/* Voice Speed */}
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
                 Voice Reading Speed
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -259,7 +249,7 @@ export default function CareSettings() {
                     }}
                     className={`p-3 rounded-lg border-2 transition-all ${
                       settings.voiceSpeed === speed
-                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20 dark:border-green-400'
                         : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
@@ -268,11 +258,9 @@ export default function CareSettings() {
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* Interaction Settings */}
+          </div>          {/* Interaction Settings */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
               <span>⚙️</span>
               Interaction Settings
             </h3>
@@ -335,24 +323,22 @@ export default function CareSettings() {
               <span>💾</span>
               Save Settings
             </button>
-          </div>
-
-          {/* Current Settings Summary */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-3">
+          </div>          {/* Current Settings Summary */}
+          <div className="bg-blue-50 dark:bg-purple-900/20 rounded-lg p-4">
+            <h4 className="font-semibold text-blue-800 dark:text-purple-300 mb-3">
               📋 Current Settings Summary
             </h4>
             <div className="grid md:grid-cols-2 gap-2 text-sm">
-              <div className="text-gray-700 dark:text-gray-300">
+              <div className="text-gray-700 dark:text-gray-200">
                 <strong>Text:</strong> {settings.textSize.replace('-', ' ')}
               </div>
-              <div className="text-gray-700 dark:text-gray-300">
+              <div className="text-gray-700 dark:text-gray-200">
                 <strong>Contrast:</strong> {settings.contrast}
               </div>
-              <div className="text-gray-700 dark:text-gray-300">
+              <div className="text-gray-700 dark:text-gray-200">
                 <strong>Voice Speed:</strong> {settings.voiceSpeed}
               </div>
-              <div className="text-gray-700 dark:text-gray-300">
+              <div className="text-gray-700 dark:text-gray-200">
                 <strong>Buttons:</strong> {settings.buttonSize}
               </div>
             </div>

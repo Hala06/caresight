@@ -11,21 +11,30 @@ interface NavbarProps {
 }
 
 export default function Navbar({ transparent = false }: NavbarProps) {
-  const { isSignedIn, user } = useUser();
-
-  return (
-    <nav className={`fixed top-0 w-full z-50 border-b transition-all ${
+  // Handle Clerk authentication safely for build time
+  let isSignedIn = false;
+  let user = null;
+  
+  try {
+    const clerkData = useUser();
+    isSignedIn = clerkData.isSignedIn ?? false;
+    user = clerkData.user;
+  } catch (error) {
+    // Clerk is not available during build, use defaults
+    console.log('Clerk not available in Navbar, using defaults');
+  }
+  return (    <nav className={`fixed top-0 w-full z-50 border-b transition-all ${
       transparent 
-        ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-gray-200 dark:border-gray-700' 
-        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700'
+        ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-gray-200 dark:border-gray-600' 
+        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600'
     }`}>
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-theme-accent-blue dark:from-theme-accent-purple dark:to-theme-accent-ash-purple rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-lg">C</span>
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-theme-accent-blue dark:from-theme-accent-purple dark:to-theme-accent-ash-purple bg-clip-text text-transparent">
             CareSight
           </h1>
         </Link>
@@ -60,20 +69,21 @@ export default function Navbar({ transparent = false }: NavbarProps) {
               </Link>
             </>
           )}
-        </div>
-
-        {/* Right Side - Theme Toggle & User */}
+        </div>        {/* Right Side - Theme Toggle & User */}
         <div className="flex items-center gap-3">
-          <ThemeToggle />          {isSignedIn && (
-            <UserButton 
-              signInUrl="/sign-in"
-              userProfileUrl="/dashboard"
-              appearance={{
-                elements: {
-                  avatarBox: "w-10 h-10"
-                }
-              }}
-            />
+          <ThemeToggle />          
+          {isSignedIn && (
+            <div suppressHydrationWarning>
+              <UserButton 
+                signInUrl="/sign-in"
+                userProfileUrl="/dashboard"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-10 h-10"
+                  }
+                }}
+              />
+            </div>
           )}
         </div>
       </div>    </nav>

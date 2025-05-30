@@ -2,6 +2,7 @@
 
 **CareSight** is an AI-powered healthcare assistant designed specifically for elderly, disabled, and neurodiverse users. It simplifies medical information, provides accessible interfaces, and includes comprehensive care coordination features.
 
+
 ## ✨ Features
 
 ### 🔍 **Document Scanner & OCR**

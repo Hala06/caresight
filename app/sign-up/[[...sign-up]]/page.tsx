@@ -31,10 +31,8 @@ export default function SignUpPage() {
             </p>
           </div>
 
-          {/* Clerk Sign Up Component */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
-            <SignUp 
-              appearance={{
+          {/* Clerk Sign Up Component */}          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+            <SignUp              appearance={{
                 elements: {
                   formButtonPrimary: "bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600",
                   card: "bg-transparent shadow-none",
@@ -42,6 +40,8 @@ export default function SignUpPage() {
                   headerSubtitle: "hidden",
                 }
               }}
+              forceRedirectUrl="/onboarding"
+              fallbackRedirectUrl="/onboarding"
             />
           </div>
 

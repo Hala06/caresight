@@ -2,41 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Care Mode Variables */
-:root {
-  --care-spacing: 2rem;
-  --care-font-size: 1.25rem;
-  --care-button-size: 4rem;
-  --care-border-radius: 1rem;
+/* Responsive Base Styles */
+* {
+  box-sizing: border-box;
 }
 
-/* Medical Color Scheme */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Care Mode Variables - Responsive */
 :root {
-  --medical-primary: #3B82F6;
-  --medical-secondary: #10B981;
-  --medical-accent: #8B5CF6;
-  --medical-warning: #F59E0B;
+  --care-spacing: clamp(1rem, 4vw, 2rem);
+  --care-font-size: clamp(1rem, 3vw, 1.25rem);
+  --care-button-size: clamp(3rem, 8vw, 4rem);
+  --care-border-radius: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* Light Mode Color Scheme - White, Gold, Light Blue */
+:root {
+  --medical-primary: #1E40AF; /* Deep blue */
+  --medical-secondary: #F59E0B; /* Gold */
+  --medical-accent: #06B6D4; /* Light blue */
+  --medical-warning: #F59E0B; /* Gold */
   --medical-danger: #EF4444;
   --medical-success: #22C55E;
-  --medical-background: #F8FAFC;
-  --medical-card: #FFFFFF;
-  --medical-border: #E2E8F0;
-  --medical-text: #1E293B;
-  --medical-text-secondary: #64748B;
+  --medical-background: #FFFFFF; /* Pure white background */
+  --medical-card: #FFFFFF; /* White cards */
+  --medical-border: #E5E7EB; /* Light grey borders */
+  --medical-text: #1F2937; /* Dark text */
+  --medical-text-secondary: #6B7280; /* Grey text */
+  
+  /* Light mode specific variables */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --bg-accent: #EBF8FF; /* Light blue accent */
+  --accent-gold: #F59E0B;
+  --accent-blue: #06B6D4;
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
 }
 
+/* Dark Mode Color Scheme - Improved visibility and contrast */
 .dark {
-  --medical-primary: #60A5FA;
-  --medical-secondary: #34D399;
-  --medical-accent: #A78BFA;
+  --medical-primary: #60A5FA; /* Lighter blue for better visibility */
+  --medical-secondary: #C084FC; /* Light purple */
+  --medical-accent: #A78BFA; /* Ash purple */
   --medical-warning: #FBBF24;
   --medical-danger: #F87171;
   --medical-success: #4ADE80;
-  --medical-background: #0F172A;
-  --medical-card: #1E293B;
-  --medical-border: #334155;
-  --medical-text: #F1F5F9;
-  --medical-text-secondary: #94A3B8;
+  --medical-background: #111827; /* Very dark background */
+  --medical-card: #1F2937; /* Dark grey cards */
+  --medical-border: #374151; /* Medium grey borders */
+  --medical-text: #F9FAFB; /* Very light text */
+  --medical-text-secondary: #D1D5DB; /* Light grey text */
+  
+  /* Dark mode specific variables */
+  --bg-primary: #111827; /* Very dark background */
+  --bg-secondary: #0F172A; /* Even darker for contrast */
+  --bg-accent: #1E1B4B; /* Dark blue accent */
+  --accent-purple: #C084FC; /* Light purple for visibility */
+  --accent-ash-purple: #A78BFA; /* Ash purple */
+  --text-primary: #F8FAFC; /* Almost white text */
+  --text-secondary: #CBD5E1; /* Light grey text */
+  --border-primary: #334155; /* Medium grey borders */
+  --border-secondary: #475569; /* Darker borders for cards */
 }
 
 /* Care Mode Styles */
@@ -180,6 +219,77 @@
   }
 }
 
+/* Dark Mode Utility Classes */
+.dark .bg-theme-primary { background-color: var(--bg-primary); }
+.dark .bg-theme-secondary { background-color: var(--bg-secondary); }
+.dark .text-theme-primary { color: var(--text-primary); }
+.dark .text-theme-secondary { color: var(--text-secondary); }
+.dark .border-theme-primary { border-color: var(--border-primary); }
+.dark .border-theme-secondary { border-color: var(--border-secondary); }
+
+/* Enhanced Dark Mode Card Styles */
+.dark .medical-card {
+  background: var(--medical-card);
+  border: 1px solid var(--border-secondary);
+  color: var(--text-primary);
+}
+
+.dark .medical-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 15px rgba(0, 0, 0, 0.2);
+  border-color: var(--accent-purple);
+}
+
+/* Improved Dark Mode Form Elements */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: var(--medical-card);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.1);
+}
+
+/* Dark Mode Button Improvements */
+.dark .medical-button-primary {
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-ash-purple));
+  color: white;
+}
+
+.dark .medical-button-primary:hover {
+  box-shadow: 0 4px 12px rgba(192, 132, 252, 0.4);
+}
+
+/* Dark Mode Alert Styles */
+.dark .medical-alert-info {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: var(--medical-primary);
+  color: #93C5FD;
+}
+
+.dark .medical-alert-success {
+  background: rgba(74, 222, 128, 0.1);
+  border-color: var(--medical-success);
+  color: #86EFAC;
+}
+
+.dark .medical-alert-warning {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: var(--medical-warning);
+  color: #FCD34D;
+}
+
+.dark .medical-alert-danger {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: var(--medical-danger);
+  color: #FCA5A5;
+}
+
 @keyframes pulse-gentle {
   0%, 100% { 
     opacity: 1; 
@@ -250,6 +360,93 @@
   font-size: 2rem;
 }
 
+/* Enhanced Theme Transitions */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Theme-aware components */
+.theme-card {
+  background: var(--bg-primary);
+  border: 1px solid #E5E7EB;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.dark .theme-card {
+  background: #374151;
+  border-color: #4B5563;
+}
+
+.theme-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.theme-button-primary {
+  background: linear-gradient(to right, #3B82F6, var(--accent-blue, #06B6D4));
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.dark .theme-button-primary {
+  background: linear-gradient(to right, var(--accent-purple, #A78BFA), var(--accent-ash-purple, #8B5CF6));
+}
+
+.theme-button-primary:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-bg-primary {
+  background: var(--bg-primary);
+}
+
+.dark .theme-bg-primary {
+  background: #111827;
+}
+
+.theme-bg-secondary {
+  background: var(--bg-secondary);
+}
+
+.dark .theme-bg-secondary {
+  background: #1F2937;
+}
+
+/* Enhanced focus states for accessibility */
+.theme-focus:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3B82F6;
+}
+
+.dark .theme-focus:focus {
+  box-shadow: 0 0 0 2px var(--accent-purple, #A78BFA);
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar-track {
+  background: var(--medical-background);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--medical-border);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--medical-text-secondary);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .care-mode {
@@ -265,6 +462,128 @@
     min-height: 3.5rem;
     font-size: 1rem;
     padding: 0.875rem 1.5rem;
+  }
+}
+
+/* Responsive Design Utilities */
+@layer utilities {
+  /* Container queries for better responsive design */
+  .container-responsive {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: clamp(1rem, 4vw, 2rem);
+  }
+
+  /* Responsive text sizing */
+  .text-responsive-xs { font-size: clamp(0.75rem, 2vw, 0.875rem); }
+  .text-responsive-sm { font-size: clamp(0.875rem, 2.5vw, 1rem); }
+  .text-responsive-base { font-size: clamp(1rem, 3vw, 1.125rem); }
+  .text-responsive-lg { font-size: clamp(1.125rem, 3.5vw, 1.25rem); }
+  .text-responsive-xl { font-size: clamp(1.25rem, 4vw, 1.5rem); }
+  .text-responsive-2xl { font-size: clamp(1.5rem, 4.5vw, 1.875rem); }
+  .text-responsive-3xl { font-size: clamp(1.875rem, 5vw, 2.25rem); }
+  .text-responsive-4xl { font-size: clamp(2.25rem, 6vw, 3rem); }
+
+  /* Responsive spacing */
+  .space-responsive-sm { gap: clamp(0.5rem, 2vw, 1rem); }
+  .space-responsive-md { gap: clamp(1rem, 3vw, 1.5rem); }
+  .space-responsive-lg { gap: clamp(1.5rem, 4vw, 2rem); }
+  .space-responsive-xl { gap: clamp(2rem, 5vw, 3rem); }
+
+  /* Mobile-first grid layouts */
+  .grid-responsive-auto {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: clamp(1rem, 3vw, 2rem);
+  }
+
+  .grid-responsive-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: clamp(1rem, 3vw, 2rem);
+  }
+
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Responsive images */
+  .img-responsive {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  /* Safe area padding for mobile devices */
+  .safe-area-padding {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  
+  .mobile-center {
+    text-align: center !important;
+  }
+  
+  .mobile-hide {
+    display: none !important;
+  }
+}
+
+/* Tablet-specific optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .tablet-grid-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .tablet-text-center {
+    text-align: center !important;
+  }
+}
+
+/* Desktop-specific optimizations */
+@media (min-width: 1025px) {
+  .desktop-grid-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  
+  .desktop-grid-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-text {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Improved focus styles for accessibility */
+@layer base {
+  *:focus-visible {
+    outline: 2px solid var(--medical-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 

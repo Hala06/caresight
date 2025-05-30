@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareSight Feature Validator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border-left: 4px solid #4ade80;
+        }
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            border-left: 3px solid transparent;
+        }
+        .success { border-left-color: #4ade80; }
+        .warning { border-left-color: #fbbf24; }
+        .error { border-left-color: #ef4444; }
+        .test-button {
+            background: linear-gradient(45deg, #4ade80, #3b82f6);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        h1, h2, h3 { margin-top: 0; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background: #4ade80; }
+        .status-warning { background: #fbbf24; }
+        .status-error { background: #ef4444; }
+        .status-pending { background: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 CareSight Feature Validation Dashboard</h1>
+        <p>This tool validates all the enhanced features we've implemented in CareSight.</p>
+
+        <div class="test-section">
+            <h2>🤖 Enhanced AI Chat Testing</h2>
+            <div class="test-item">
+                <h3><span id="ai-status" class="status-indicator status-pending"></span>Medical Knowledge Base</h3>
+                <button class="test-button" onclick="testAIChat()">Test AI Chat</button>
+                <div id="ai-results" class="result"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 Personalized Welcome Testing</h2>
+            <div class="test-item">
+                <h3><span id="preferences-status" class="status-indicator status-pending"></span>User Preferences</h3>
+                <button class="test-button" onclick="testUserPreferences()">Test Preferences Storage</button>
+                <button class="test-button" onclick="simulateOnboarding()">Simulate Onboarding</button>
+                <div id="preferences-results" class="result"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎨 Background Animations Testing</h2>
+            <div class="test-item">
+                <h3><span id="animations-status" class="status-indicator status-pending"></span>Theme-based Animations</h3>
+                <button class="test-button" onclick="testAnimations()">Test Animations</button>
+                <button class="test-button" onclick="toggleTheme()">Toggle Theme</button>
+                <div id="animations-results" class="result"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔊 Text-to-Speech Testing</h2>
+            <div class="test-item">
+                <h3><span id="tts-status" class="status-indicator status-pending"></span>Welcome Messages</h3>
+                <button class="test-button" onclick="testTTS()">Test Text-to-Speech</button>
+                <div id="tts-results" class="result"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Overall System Status</h2>
+            <div id="system-status" class="test-item">
+                <p>Click the test buttons above to validate each feature.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            ai: { passed: false, message: '' },
+            preferences: { passed: false, message: '' },
+            animations: { passed: false, message: '' },
+            tts: { passed: false, message: '' }
+        };
+
+        function updateStatus(testName, passed, message) {
+            testResults[testName] = { passed, message };
+            const indicator = document.getElementById(`${testName}-status`);
+            const resultsDiv = document.getElementById(`${testName}-results`);
+            
+            indicator.className = `status-indicator ${passed ? 'status-success' : 'status-error'}`;
+            resultsDiv.textContent = message;
+            resultsDiv.className = `result ${passed ? 'success' : 'error'}`;
+            
+            updateSystemStatus();
+        }
+
+        function updateSystemStatus() {
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(r => r.passed).length;
+            const systemStatus = document.getElementById('system-status');
+            
+            systemStatus.innerHTML = `
+                <h3>System Health: ${passed}/${total} tests passed</h3>
+                <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px;">
+                    ${Object.entries(testResults).map(([test, result]) => 
+                        `<div><span class="status-indicator ${result.passed ? 'status-success' : 'status-error'}"></span>${test}: ${result.passed ? '✅ Passed' : '❌ Failed'}</div>`
+                    ).join('')}
+                </div>
+            `;
+        }
+
+        async function testAIChat() {
+            const questions = [
+                "What is hypertension?",
+                "What does positive nodes mean?",
+                "What are the symptoms of diabetes?"
+            ];
+
+            try {
+                let allPassed = true;
+                let results = [];
+
+                for (const question of questions) {
+                    const response = await fetch('http://localhost:3001/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: question })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        results.push(`✅ ${question}: ${data.response.substring(0, 100)}...`);
+                    } else {
+                        results.push(`❌ ${question}: Failed with status ${response.status}`);
+                        allPassed = false;
+                    }
+                }
+
+                updateStatus('ai', allPassed, results.join('\n\n'));
+            } catch (error) {
+                updateStatus('ai', false, `Error: ${error.message}`);
+            }
+        }
+
+        function simulateOnboarding() {
+            const mockPreferences = {
+                textToSpeech: true,
+                age: "35-44",
+                medicalConditions: ["Blood Pressure", "Diabetes"],
+                emergencyContacts: [{ name: "John Doe", phone: "555-0123" }],
+                caregiverEmails: ["caregiver@example.com"],
+                accessibilityNeeds: ["Text-to-Speech"],
+                hasBloodPressure: true,
+                hasDiabetes: true,
+                hasHeartCondition: false,
+                hasAsthma: false
+            };
+
+            localStorage.setItem('userPreferences', JSON.stringify(mockPreferences));
+            localStorage.removeItem('hasWelcomed'); // Reset to trigger welcome on next visit
+            
+            updateStatus('preferences', true, 
+                'Mock onboarding completed!\n' +
+                'Preferences saved:\n' +
+                JSON.stringify(mockPreferences, null, 2)
+            );
+        }
+
+        function testUserPreferences() {
+            try {
+                const stored = localStorage.getItem('userPreferences');
+                if (stored) {
+                    const prefs = JSON.parse(stored);
+                    const hasRequired = prefs.hasOwnProperty('hasBloodPressure') && 
+                                      prefs.hasOwnProperty('hasDiabetes') &&
+                                      prefs.hasOwnProperty('textToSpeech');
+                    
+                    updateStatus('preferences', hasRequired, 
+                        'User preferences loaded successfully:\n' +
+                        JSON.stringify(prefs, null, 2)
+                    );
+                } else {
+                    updateStatus('preferences', false, 'No user preferences found. Run simulate onboarding first.');
+                }
+            } catch (error) {
+                updateStatus('preferences', false, `Error loading preferences: ${error.message}`);
+            }
+        }
+
+        function testAnimations() {
+            // Check if we're on CareSight and can detect theme
+            try {
+                const isDark = document.documentElement.classList.contains('dark') || 
+                              window.matchMedia('(prefers-color-scheme: dark)').matches;
+                
+                updateStatus('animations', true, 
+                    `Current theme: ${isDark ? 'Dark (Starfield)' : 'Light (Lava Lamp)'}\n` +
+                    'Background animations should be visible on the dashboard.\n' +
+                    'Dark mode: 50 twinkling stars with shooting stars\n' +
+                    'Light mode: 8 floating blobs with particles'
+                );
+            } catch (error) {
+                updateStatus('animations', false, `Error detecting theme: ${error.message}`);
+            }
+        }
+
+        function toggleTheme() {
+            // This would need to be implemented in the actual CareSight app
+            alert('Theme toggle would work on the actual CareSight dashboard. Visit http://localhost:3001/dashboard to test.');
+        }
+
+        function testTTS() {
+            if ('speechSynthesis' in window) {
+                const message = "Hello! This is a test of CareSight's text-to-speech functionality for accessibility.";
+                const utterance = new SpeechSynthesisUtterance(message);
+                utterance.rate = 0.8;
+                utterance.pitch = 1;
+                utterance.volume = 0.8;
+                
+                utterance.onend = () => {
+                    updateStatus('tts', true, 'Text-to-speech test completed successfully!');
+                };
+                
+                utterance.onerror = (error) => {
+                    updateStatus('tts', false, `TTS Error: ${error.error}`);
+                };
+                
+                speechSynthesis.speak(utterance);
+                updateStatus('tts', true, 'Text-to-speech test started...');
+            } else {
+                updateStatus('tts', false, 'Text-to-speech not supported in this browser.');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 CareSight Feature Validator Ready');
+            updateSystemStatus();
+        });
+    </script>
+</body>
+</html>

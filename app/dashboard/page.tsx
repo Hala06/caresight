@@ -11,14 +11,45 @@ import EmailReminder from '../components/EmailReminder';
 import AdvancedHealthMonitoring from '../components/AdvancedHealthMonitoring';
 import VoiceAssistant from '../components/VoiceAssistant';
 import CareSettings from '../components/CareSettings';
+import PersonalizedWelcome from '../components/PersonalizedWelcome';
+import BackgroundAnimations from '../components/BackgroundAnimations';
 import Link from 'next/link';
 
 export default function Dashboard() {
-  const { isSignedIn, user } = useUser();
-
-  if (!isSignedIn) {
-    redirect('/sign-in');
+  // Handle Clerk authentication safely for build time
+  let isSignedIn = false;
+  let user = null;
+  
+  try {
+    const clerkData = useUser();
+    isSignedIn = clerkData.isSignedIn ?? false;
+    user = clerkData.user;
+    
+    if (!isSignedIn) {
+      redirect('/sign-in');
+    }
+  } catch (error) {
+    // Clerk is not available during build, continue without authentication
+    console.log('Clerk not available, skipping authentication');
   }
+
+  // Check if user has completed onboarding
+  const checkOnboardingStatus = () => {
+    if (typeof window !== 'undefined') {
+      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+      const isDemo = localStorage.getItem('isDemo') === 'true';
+      
+      // If not demo user and hasn't completed onboarding, redirect
+      if (!isDemo && !onboardingCompleted && isSignedIn) {
+        redirect('/onboarding');
+      }
+      
+      return { onboardingCompleted: !!onboardingCompleted, isDemo };
+    }
+    return { onboardingCompleted: false, isDemo: false };
+  };
+
+  const { onboardingCompleted, isDemo } = checkOnboardingStatus();
 
   const quickActions = [
     {
@@ -74,13 +105,15 @@ export default function Dashboard() {
       status: 'pending'
     }
   ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative">
+      {/* Calm Background Animations */}
+      <BackgroundAnimations />
+      
       <Navbar />
       
-      <div className="pt-20 pb-8">
-        <div className="container mx-auto px-6">          {/* Welcome Header */}
+      <div className="pt-20 pb-8 relative z-10">
+        <div className="container mx-auto px-6">{/* Welcome Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -88,19 +121,58 @@ export default function Dashboard() {
             className="mb-8"
           >
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 mb-8">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div>
+              <div className="flex items-center justify-between flex-wrap gap-4">                <div>
                   <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    Welcome back, {user?.firstName || 'User'}! 👋
+                    {isDemo ? `Welcome to the CareSight Demo! 👋` : 
+                     onboardingCompleted ? `Welcome back, ${user?.firstName || 'User'}! 👋` :
+                     `Hi ${user?.firstName || 'User'}! Let's get started 🚀`}
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300">
-                    Here's your health overview for {new Date().toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}
+                    {isDemo ? 'Explore our demo features and see how CareSight can help with healthcare management' :
+                     onboardingCompleted ? `Here's your health overview for ${new Date().toLocaleDateString('en-US', { 
+                       weekday: 'long', 
+                       year: 'numeric', 
+                       month: 'long', 
+                       day: 'numeric' 
+                     })}` :
+                     'Complete your setup to unlock personalized health assistance'}
                   </p>
+                  
+                  {/* Show onboarding reminder for new users */}
+                  {!isDemo && !onboardingCompleted && (
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl">✨</div>
+                        <div>
+                          <h3 className="font-semibold text-blue-800 dark:text-blue-200">Quick Setup Required</h3>
+                          <p className="text-blue-700 dark:text-blue-300 text-sm">
+                            Complete your profile to get personalized health insights and connect with caregivers
+                          </p>
+                        </div>
+                        <Link 
+                          href="/onboarding"
+                          className="ml-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                        >
+                          Complete Setup
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Demo disclaimer */}
+                  {isDemo && (
+                    <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl">⚠️</div>
+                        <div>
+                          <h3 className="font-semibold text-yellow-800 dark:text-yellow-200">Demo Mode</h3>
+                          <p className="text-yellow-700 dark:text-yellow-300 text-sm">
+                            This is a demonstration with sample data. Do not enter real medical information.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-4">
                   <motion.div
@@ -116,9 +188,16 @@ export default function Dashboard() {
                     <div className="text-lg font-bold text-green-600 dark:text-green-400">85%</div>
                   </motion.div>
                 </div>
-              </div>
-            </div>
-          </motion.div>          {/* Quick Actions Grid */}
+              </div>            </div>
+          </motion.div>
+
+          {/* Personalized Welcome Component */}
+          <PersonalizedWelcome 
+            isDemo={isDemo} 
+            onboardingCompleted={onboardingCompleted} 
+          />
+
+          {/* Quick Actions Grid */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

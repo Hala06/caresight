@@ -4,6 +4,12 @@ import Link from 'next/link';
 import Navbar from '../components/Navbar';
 
 export default function DemoPage() {
+  const handleExploreDemo = () => {
+    // Set demo flag in localStorage
+    localStorage.setItem('isDemo', 'true');
+    localStorage.setItem('onboardingCompleted', 'true'); // Skip onboarding for demo
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Navbar />
@@ -61,9 +67,9 @@ export default function DemoPage() {
                     className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
                   >
                     Get Started Free
-                  </Link>
-                  <Link
+                  </Link>                  <Link
                     href="/dashboard"
+                    onClick={handleExploreDemo}
                     className="border-2 border-blue-500 text-blue-500 dark:text-blue-400 px-8 py-3 rounded-xl font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
                   >
                     Explore Dashboard

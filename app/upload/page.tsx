@@ -7,7 +7,7 @@ import VoiceAssistant from '../components/VoiceAssistant';
 
 export default function UploadPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-theme-bg-primary via-theme-bg-secondary to-theme-bg-accent dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Navbar />
       
       <div className="container mx-auto px-6 py-12">
@@ -19,11 +19,11 @@ export default function UploadPage() {
         >
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-theme-accent-blue dark:from-theme-accent-purple dark:to-theme-accent-ash-purple bg-clip-text text-transparent">
                 Document Scanner & AI Analysis
               </span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-theme-text-secondary dark:text-theme-text-secondary max-w-3xl mx-auto">
               Upload your medical documents, prescriptions, or lab results. Our advanced OCR technology and AI will extract, analyze, and simplify the information for you.
             </p>
           </div>

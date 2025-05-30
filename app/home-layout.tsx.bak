@@ -1,0 +1,44 @@
+'use client';
+
+import React from 'react';
+import dynamic from 'next/dynamic';
+
+const Loading = () => (
+  <div className="animate-pulse bg-gray-100 rounded-lg h-32" />
+);
+
+const OnboardingProvider = dynamic(
+  () => import('./components/OnboardingProvider'),
+  { loading: Loading }
+);
+
+const Hero = dynamic(
+  () => import('./components/Hero'),
+  { loading: Loading }
+);
+
+const FeatureShowcase = dynamic(
+  () => import('./components/FeatureShowcase'),
+  { loading: Loading }
+);
+
+const HealthOverview = dynamic(
+  () => import('./components/HealthOverview'),
+  { loading: Loading }
+);
+
+export default function HomeLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <OnboardingProvider />
+      <Hero />
+      <FeatureShowcase />
+      <HealthOverview />
+      {children}
+    </main>
+  );
+}

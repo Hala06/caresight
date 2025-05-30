@@ -30,19 +30,37 @@ function HeartModel() {
         {heart?.scene ? (
           <primitive object={heart.scene} />
         ) : (
-          // Fallback heart shape made from spheres
+          // Fallback heart shape made from spheres - Much Brighter
           <group>
             <mesh position={[0, 0.3, 0]}>
               <sphereGeometry args={[0.5, 32, 32]} />
-              <meshStandardMaterial color="#e74c3c" metalness={0.3} roughness={0.4} />
+              <meshStandardMaterial 
+                color="#ff4757" 
+                metalness={0.1} 
+                roughness={0.2} 
+                emissive="#ff1744"
+                emissiveIntensity={0.1}
+              />
             </mesh>
             <mesh position={[-0.3, 0.6, 0]}>
               <sphereGeometry args={[0.3, 32, 32]} />
-              <meshStandardMaterial color="#e74c3c" metalness={0.3} roughness={0.4} />
+              <meshStandardMaterial 
+                color="#ff4757" 
+                metalness={0.1} 
+                roughness={0.2}
+                emissive="#ff1744"
+                emissiveIntensity={0.1}
+              />
             </mesh>
             <mesh position={[0.3, 0.6, 0]}>
               <sphereGeometry args={[0.3, 32, 32]} />
-              <meshStandardMaterial color="#e74c3c" metalness={0.3} roughness={0.4} />
+              <meshStandardMaterial 
+                color="#ff4757" 
+                metalness={0.1} 
+                roughness={0.2}
+                emissive="#ff1744"
+                emissiveIntensity={0.1}
+              />
             </mesh>
           </group>
         )}
@@ -126,13 +144,19 @@ function Particles() {
 
 export default function ThreeScene() {
   return (
-    <div className="h-96 w-full relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-teal-50/50 rounded-3xl"></div>
-      <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
-        {/* Lighting */}
-        <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={0.8} />
-        <pointLight position={[-10, -10, -10]} intensity={0.3} color="#60A5FA" />
+    <div className="h-64 sm:h-80 md:h-96 w-full relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-teal-50/30 rounded-3xl"></div>
+      <Canvas 
+        camera={{ position: [0, 0, 8], fov: 45 }}
+        className="w-full h-full"
+        style={{ touchAction: 'none' }}
+      >{/* Enhanced Lighting - Much Brighter */}
+        <ambientLight intensity={1.2} color="#ffffff" />
+        <directionalLight position={[10, 10, 10]} intensity={1.5} color="#ffffff" />
+        <directionalLight position={[-10, 10, 10]} intensity={1.0} color="#ffffff" />
+        <pointLight position={[5, 5, 5]} intensity={1.2} color="#ffffff" />
+        <pointLight position={[-5, -5, 5]} intensity={0.8} color="#60A5FA" />
+        <hemisphereLight args={["#ffffff", "#f0f9ff", 0.8]} />
         
         {/* Main heart model */}
         <HeartModel />
@@ -147,15 +171,13 @@ export default function ThreeScene() {
         
         {/* Ambient particles */}
         <Particles />
-        
-        {/* Interactive text */}
+          {/* Interactive text */}
         <Text
           position={[0, -4, 0]}
           fontSize={0.8}
-          color="#374151"
+          color="#1F2937"
           anchorX="center"
           anchorY="middle"
-          font="/fonts/Inter-Medium.woff"
         >
           Healthcare Made Simple
         </Text>
@@ -170,13 +192,13 @@ export default function ThreeScene() {
         />
       </Canvas>
       
-      {/* Overlay content */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="text-center">
-          <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+      {/* Overlay content - Responsive */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-4">
+        <div className="text-center max-w-2xl">
+          <h3 className="text-responsive-3xl font-bold text-gray-800 mb-4">
             Advanced AI Technology
           </h3>
-          <p className="text-lg text-gray-600 max-w-md">
+          <p className="text-responsive-lg text-gray-600">
             Powered by cutting-edge machine learning to understand and simplify complex medical information
           </p>
         </div>

@@ -6,35 +6,35 @@ import Image from 'next/image';
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center pt-20">
+    <section className="relative min-h-screen flex items-center pt-16 sm:pt-20">
       {/* Background with DNA pattern */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/DNA.jpg"
           alt="Medical background"
           fill
-          className="object-cover opacity-30"
+          className="object-cover opacity-30 dark:opacity-20 img-responsive"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-blue-50/80 to-teal-50/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-blue-50/80 to-teal-50/90 dark:from-gray-900/95 dark:via-gray-800/90 dark:to-gray-900/95"></div>
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="container-responsive relative z-10">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-left"
+            className="text-left mobile-center"
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6"
+              className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-3 sm:px-4 py-2 rounded-full text-responsive-sm font-medium mb-4 sm:mb-6"
             >
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+              <span className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse"></span>
               AI-Powered Healthcare Assistant
             </motion.div>
 
@@ -42,13 +42,13 @@ export default function Hero() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+              className="text-responsive-4xl font-bold mb-4 sm:mb-6 leading-tight"
             >
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 via-theme-accent-gold to-theme-accent-blue dark:from-theme-accent-purple dark:via-theme-accent-ash-purple dark:to-blue-400 bg-clip-text text-transparent">
                 CareSight
               </span>
               <br />
-              <span className="text-gray-800">
+              <span className="text-gray-900 dark:text-white">
                 Your Compassionate Health Companion
               </span>
             </motion.h1>
@@ -57,7 +57,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-xl text-gray-600 mb-8 leading-relaxed max-w-xl"
+              className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed max-w-xl"
             >
               An AI-powered assistant that reads and simplifies medical forms for elderly, disabled, 
               and neurodiverse users, with caregiver alerts and medical Q&A support.
@@ -68,9 +68,10 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
               className="flex flex-col sm:flex-row gap-4 mb-12"
-            >              <Link
+            >
+              <Link
                 href="/sign-up"
-                className="group bg-gradient-to-r from-blue-500 to-teal-500 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:shadow-xl transition-all flex items-center justify-center gap-3"
+                className="group bg-gradient-to-r from-blue-500 to-theme-accent-blue dark:from-theme-accent-purple dark:to-theme-accent-ash-purple text-white px-8 py-4 rounded-xl text-lg font-semibold hover:shadow-xl transition-all flex items-center justify-center gap-3"
               >
                 <span>🚀</span>
                 Get Started Free
@@ -80,10 +81,9 @@ export default function Hero() {
                   →
                 </motion.span>
               </Link>
-              
-              <Link
+                <Link
                 href="/demo"
-                className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:border-blue-500 hover:text-blue-600 transition-all flex items-center justify-center gap-3"
+                className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl text-lg font-semibold hover:border-blue-500 hover:text-blue-600 dark:hover:border-purple-400 dark:hover:text-purple-300 transition-all flex items-center justify-center gap-3"
               >
                 <span>▶️</span>
                 Watch Demo

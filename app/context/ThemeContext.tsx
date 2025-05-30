@@ -16,10 +16,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Check for saved theme preference or default to 'light'
+    // Check for saved theme preference or default to system preference
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
       setTheme(savedTheme);
+    } else {
+      // Check system preference
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(systemPrefersDark ? 'dark' : 'light');
     }
     setMounted(true);
   }, []);
@@ -27,8 +31,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (mounted) {
       // Apply theme to document
-      document.documentElement.classList.remove('light', 'dark');
-      document.documentElement.classList.add(theme);
+      const root = document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+      
+      // Also set attribute for additional compatibility
+      root.setAttribute('data-theme', theme);
+      
+      // Save to localStorage
       localStorage.setItem('theme', theme);
     }
   }, [theme, mounted]);

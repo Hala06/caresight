@@ -58,9 +58,7 @@ export default function FeatureShowcase() {
             CareSight combines cutting-edge AI with compassionate design to make healthcare 
             accessible and understandable for all users.
           </p>
-        </motion.div>
-
-        {/* Medical Icons Background */}
+        </motion.div>        {/* Medical Icons Background */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -71,10 +69,11 @@ export default function FeatureShowcase() {
           <div className="absolute inset-0 flex justify-center items-center">
             <Image
               src="/medic.jpg"
-              alt="Medical icons"
+              alt="Medical icons and healthcare symbols"
               width={800}
               height={200}
               className="opacity-10"
+              priority
             />
           </div>
         </motion.div>
