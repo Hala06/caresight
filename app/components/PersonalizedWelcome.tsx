@@ -27,7 +27,6 @@ export default function PersonalizedWelcome({ isDemo, onboardingCompleted }: Per
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [hasSpoken, setHasSpoken] = useState(false);
   const [showTour, setShowTour] = useState(false);
-
   useEffect(() => {
     if (typeof window !== 'undefined' && onboardingCompleted && !isDemo) {
       // Load user preferences from localStorage
@@ -39,14 +38,53 @@ export default function PersonalizedWelcome({ isDemo, onboardingCompleted }: Per
         // Check if this is the first time visiting after onboarding
         const hasWelcomed = localStorage.getItem('hasWelcomed');
         if (!hasWelcomed && prefs.textToSpeech && !hasSpoken) {
-          speakWelcomeMessage(prefs);
+          // Inline the speech functionality to avoid dependency issues
+          if ('speechSynthesis' in window && prefs.textToSpeech) {
+            const name = user?.firstName || 'there';
+            let message = `Hello ${name}, welcome to CareSight! I'm your personal health assistant, and I'm here to help you manage your healthcare journey.`;
+            
+            // Personalize based on medical conditions
+            const conditions = [];
+            if (prefs.hasBloodPressure) conditions.push('blood pressure monitoring');
+            if (prefs.hasDiabetes) conditions.push('diabetes management');
+            if (prefs.hasHeartCondition) conditions.push('heart health tracking');
+            if (prefs.hasAsthma) conditions.push('respiratory health monitoring');
+            
+            if (conditions.length > 0) {
+              message += ` I see you'd like help with ${conditions.join(', ')}. I'll make sure to highlight features that can help you with these areas.`;
+            }
+            
+            if (prefs.caregiverEmails?.length > 0) {
+              message += ` I've noted that you have caregivers who will receive important updates about your health.`;
+            }
+            
+            message += ` Let me give you a quick tour of what I can do for you. You can always change your preferences in the settings if you need to adjust anything.`;
+            
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.rate = 0.8;
+            utterance.pitch = 1;
+            utterance.volume = 0.8;
+            
+            // Use a gentle, caring voice if available
+            const voices = speechSynthesis.getVoices();
+            const preferredVoice = voices.find(voice => 
+              voice.name.includes('Microsoft Zira') || 
+              voice.name.includes('Google US English') ||
+              voice.lang.includes('en-US')
+            );
+            if (preferredVoice) {
+              utterance.voice = preferredVoice;
+            }
+            
+            speechSynthesis.speak(utterance);
+            setHasSpoken(true);
+          }
           setShowTour(true);
           localStorage.setItem('hasWelcomed', 'true');
         }
       }
     }
-  }, [onboardingCompleted, isDemo, hasSpoken]);
-
+  }, [onboardingCompleted, isDemo, hasSpoken, user?.firstName]);
   const speakWelcomeMessage = (prefs: UserPreferences) => {
     if ('speechSynthesis' in window && prefs.textToSpeech) {
       const message = generateWelcomeMessage(prefs);

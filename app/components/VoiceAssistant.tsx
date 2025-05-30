@@ -1,6 +1,6 @@
 // app/components/VoiceAssistant.tsx
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VoiceCommand {
@@ -19,6 +19,49 @@ export default function VoiceAssistant() {
   
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const speak = useCallback((text: string, rate: number = 0.8) => {
+    if (synthRef.current) {
+      synthRef.current.cancel(); // Stop any ongoing speech
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = rate;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      // Use a more gentle voice for elderly users
+      const voices = synthRef.current.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.name.includes('Female') || voice.name.includes('Karen') || voice.name.includes('Samantha')
+      );
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      synthRef.current.speak(utterance);
+    }
+  }, []);
+
+  const deactivateVoiceAssistant = useCallback(() => {
+    setIsActivated(false);
+    setIsListening(false);
+    setTranscript('');
+    setLastCommand(null);
+    
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    
+    speak('Voice assistant deactivated. Thank you!');
+  }, [speak]);
+
+  const speakCommands = useCallback(() => {
+    const commandList = voiceCommands
+      .filter(cmd => cmd.command !== 'help' && cmd.command !== 'stop listening')
+      .map(cmd => `Say "${cmd.command}" to ${cmd.description}`)
+      .join('. ');
+    
+    speak(`Here are the available commands: ${commandList}. Say "stop listening" to deactivate the voice assistant.`);
+  }, [speak]);
 
   // Voice commands for elderly users
   const voiceCommands: VoiceCommand[] = [
@@ -54,26 +97,26 @@ export default function VoiceAssistant() {
     }
   ];
 
-  useEffect(() => {
-    // Check if speech recognition is supported
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      setIsSupported(true);
-      initializeSpeechRecognition();
+  const processCommand = useCallback((command: string) => {
+    setLastCommand(command);
+    
+    // Find matching voice command
+    const matchedCommand = voiceCommands.find(cmd => 
+      command.includes(cmd.command) || 
+      cmd.command.split(' ').every(word => command.includes(word))
+    );
+
+    if (matchedCommand) {
+      speak(`Executing: ${matchedCommand.description}`);
+      setTimeout(() => {
+        matchedCommand.action();
+      }, 1000);
+    } else {
+      speak(`Sorry, I didn't understand "${command}". Say "help" to hear available commands.`);
     }
+  }, [speak, deactivateVoiceAssistant, speakCommands]);
 
-    // Initialize speech synthesis
-    if ('speechSynthesis' in window) {
-      synthRef.current = window.speechSynthesis;
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, []);
-
-  const initializeSpeechRecognition = () => {
+  const initializeSpeechRecognition = useCallback(() => {
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
     const recognition = new SpeechRecognition();
     
@@ -124,48 +167,25 @@ export default function VoiceAssistant() {
     };
 
     recognitionRef.current = recognition;
-  };
-
-  const processCommand = (command: string) => {
-    setLastCommand(command);
-    
-    // Find matching voice command
-    const matchedCommand = voiceCommands.find(cmd => 
-      command.includes(cmd.command) || 
-      cmd.command.split(' ').every(word => command.includes(word))
-    );
-
-    if (matchedCommand) {
-      speak(`Executing: ${matchedCommand.description}`);
-      setTimeout(() => {
-        matchedCommand.action();
-      }, 1000);
-    } else {
-      speak(`Sorry, I didn't understand "${command}". Say "help" to hear available commands.`);
+  }, [processCommand, isActivated]);
+  useEffect(() => {
+    // Check if speech recognition is supported
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      setIsSupported(true);
+      initializeSpeechRecognition();
     }
-  };
 
-  const speak = (text: string, rate: number = 0.8) => {
-    if (synthRef.current) {
-      synthRef.current.cancel(); // Stop any ongoing speech
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = rate;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      
-      // Use a more gentle voice for elderly users
-      const voices = synthRef.current.getVoices();
-      const preferredVoice = voices.find(voice => 
-        voice.name.includes('Female') || voice.name.includes('Karen') || voice.name.includes('Samantha')
-      );
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
+    // Initialize speech synthesis
+    if ('speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
       }
-      
-      synthRef.current.speak(utterance);
-    }
-  };
+    };
+  }, [initializeSpeechRecognition]);
 
   const activateVoiceAssistant = () => {
     if (!isSupported) {
@@ -179,28 +199,6 @@ export default function VoiceAssistant() {
     if (recognitionRef.current) {
       recognitionRef.current.start();
     }
-  };
-
-  const deactivateVoiceAssistant = () => {
-    setIsActivated(false);
-    setIsListening(false);
-    setTranscript('');
-    setLastCommand(null);
-    
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    
-    speak('Voice assistant deactivated. Thank you!');
-  };
-
-  const speakCommands = () => {
-    const commandList = voiceCommands
-      .filter(cmd => cmd.command !== 'help' && cmd.command !== 'stop listening')
-      .map(cmd => `Say "${cmd.command}" to ${cmd.description}`)
-      .join('. ');
-    
-    speak(`Available voice commands: ${commandList}. Say "stop listening" when you're done.`);
   };
 
   if (!isSupported) {

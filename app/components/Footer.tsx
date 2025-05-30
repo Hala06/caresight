@@ -125,22 +125,52 @@ export default function Footer() {
               </li>
             </ul>
           </motion.div>
-        </div>
-
-        {/* Bottom Bar */}
+        </div>        {/* Bottom Bar */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="border-t border-blue-700 dark:border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center"
+          className="border-t border-blue-700 dark:border-gray-700 mt-8 pt-6 space-y-4"
         >
-          <p className="text-blue-200 dark:text-gray-400 text-sm">
-            © 2025 CareSight. All rights reserved. Built with ❤️ for better healthcare.
-          </p>
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <span className="text-blue-200 text-sm">Powered by AI</span>
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-blue-200 text-sm">Secure & HIPAA Compliant</span>
+          {/* Credits Section */}
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4 text-center">
+            <p className="text-blue-200 dark:text-gray-400 text-sm">
+              ✨ Artwork & 3D Models created with:
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-4">
+              <motion.a
+                href="https://dream-machine.lumalabs.ai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05 }}
+                className="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-blue-100 hover:text-white text-sm transition-all duration-300 flex items-center gap-2"
+              >
+                <span>🎨</span>
+                Dream Machine by Luma Labs
+              </motion.a>
+              <motion.a
+                href="https://www.meshy.ai/discover"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05 }}
+                className="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-blue-100 hover:text-white text-sm transition-all duration-300 flex items-center gap-2"
+              >
+                <span>🧊</span>
+                Meshy.ai
+              </motion.a>
+            </div>
+          </div>
+
+          {/* Copyright and Status */}
+          <div className="flex flex-col md:flex-row justify-between items-center pt-4 border-t border-blue-700/50 dark:border-gray-700/50">
+            <p className="text-blue-200 dark:text-gray-400 text-sm">
+              © 2025 CareSight. All rights reserved. Built with ❤️ for better healthcare.
+            </p>
+            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+              <span className="text-blue-200 text-sm">Powered by AI</span>
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-blue-200 text-sm">Secure & HIPAA Compliant</span>
+            </div>
           </div>
         </motion.div>
       </div>

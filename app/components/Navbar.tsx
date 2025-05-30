@@ -5,23 +5,47 @@ import { useUser, UserButton } from '@clerk/nextjs';
 import { useTheme } from '../context/ThemeContext';
 import ThemeToggle from './ThemeToggle';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 interface NavbarProps {
   transparent?: boolean;
 }
 
 export default function Navbar({ transparent = false }: NavbarProps) {
-  // Handle Clerk authentication safely for build time
-  let isSignedIn = false;
-  let user = null;
-  
-  try {
-    const clerkData = useUser();
-    isSignedIn = clerkData.isSignedIn ?? false;
-    user = clerkData.user;
-  } catch (error) {
-    // Clerk is not available during build, use defaults
-    console.log('Clerk not available in Navbar, using defaults');
+  const [mounted, setMounted] = useState(false);
+  const { isSignedIn, user, isLoaded } = useUser();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render auth-dependent content until mounted and Clerk is loaded
+  if (!mounted || !isLoaded) {
+    return (
+      <nav className={`fixed top-0 w-full z-50 border-b transition-all ${
+        transparent 
+          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-gray-200 dark:border-gray-600' 
+          : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600'
+      }`}>
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-lg">C</span>
+            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+              CareSight
+            </h1>
+          </Link>
+          
+          {/* Loading placeholder for auth section */}
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      </nav>
+    );
   }
   return (    <nav className={`fixed top-0 w-full z-50 border-b transition-all ${
       transparent 
