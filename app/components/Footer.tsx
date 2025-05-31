@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Footer() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { theme } = useTheme();
 
   return (

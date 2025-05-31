@@ -9,11 +9,14 @@ interface Contact {
   email: string | null;
 }
 
-export default function EmergencyContacts() {
+interface EmergencyContactsProps {
+  isDemo?: boolean;
+}
+
+export default function EmergencyContacts({ isDemo = false }: EmergencyContactsProps) {
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [isDemo, setIsDemo] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [lastAlertTime, setLastAlertTime] = useState<Date | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -22,75 +25,41 @@ export default function EmergencyContacts() {
     timestamp: Date;
     type: string;
     contacts: string[];
-  }>>([]);  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const demoMode = localStorage.getItem('isDemo') === 'true';
-      setIsDemo(demoMode);
-      
-      // Always check for saved contacts first
-      const savedContacts = localStorage.getItem('emergencyContacts');
-      
-      if (savedContacts) {
-        // User has their own contacts saved
-        try {
-          const parsedContacts = JSON.parse(savedContacts);
-          setContacts(parsedContacts);
-        } catch (error) {
-          console.error("Error parsing emergency contacts:", error);
-          // Fall back to default 911 contact
-          setContacts([{ name: "Emergency Services", role: "24/7 Emergency", phone: "911", email: null }]);
-        }
-      } else if (demoMode) {
-        // Demo contacts for demo mode only - don't use for real users
-        setContacts([
-          { 
-            name: "Dr. Sarah Smith", 
-            role: "Primary Care", 
-            phone: "555-0100",
-            email: "doctor@caresight.demo"
-          },
-          { 
-            name: "Emergency Services", 
-            role: "24/7 Emergency", 
-            phone: "911",
-            email: null
-          },
-          { 
-            name: "Family (John Doe)", 
-            role: "Next of Kin", 
+  }>>([]);
+
+  // Demo contacts data
+  const demoContacts = [
+    { 
+      name: "Dr. Sarah Smith", 
+      role: "Primary Care", 
+      phone: "555-0100",
+      email: "doctor@caresight.demo"
+    },
+    { 
+      name: "Emergency Services", 
+      role: "24/7 Emergency", 
+      phone: "911",
+      email: null
+    },
+    { 
+      name: "Family (John Doe)", 
+      role: "Next of Kin",
             phone: "555-0200",
             email: "family@caresight.demo"
           }
         ]);
-        
-        // Save demo contacts to localStorage to maintain consistency
-        localStorage.setItem('emergencyContacts', JSON.stringify([
-          { 
-            name: "Dr. Sarah Smith", 
-            role: "Primary Care", 
-            phone: "555-0100",
-            email: "doctor@caresight.demo"
-          },
+      } else if (savedContacts) {
+        setContacts(JSON.parse(savedContacts));
+      } else {
+        // Default emergency contact for real users
+        setContacts([
           { 
             name: "Emergency Services", 
             role: "24/7 Emergency", 
             phone: "911",
             email: null
-          },
-          { 
-            name: "Family (John Doe)", 
-            role: "Next of Kin", 
-            phone: "555-0200",
-            email: "family@caresight.demo"
           }
-        ]));
-      } else {
-        // Default emergency contact for real users - just 911
-        const defaultContact = [{ name: "Emergency Services", role: "24/7 Emergency", phone: "911", email: null }];
-        setContacts(defaultContact);
-        
-        // Save the default contact to localStorage
-        localStorage.setItem('emergencyContacts', JSON.stringify(defaultContact));
+        ]);
       }
     }
   }, []);
@@ -161,11 +130,11 @@ export default function EmergencyContacts() {
       setIsSending(false);
     }
   };
+
   return (
     <div className="bg-red-50 dark:bg-red-900 p-6 rounded-2xl shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-red-600 dark:text-red-400 flex items-center">
+      <h2 className="text-2xl font-bold mb-4 text-red-600 dark:text-red-400">
         🚨 Emergency Contacts
-        {isDemo && <span className="ml-2 bg-yellow-300 text-red-800 text-xs px-2 py-1 rounded-full">Demo</span>}
       </h2>
 
       <ul className="space-y-3 mb-6">

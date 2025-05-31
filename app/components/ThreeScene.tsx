@@ -1,232 +1,165 @@
-'use client';
+'use client'
+import { Suspense, useRef, useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+import * as THREE from 'three'
 
-import { Suspense, useState, useRef, useEffect } from 'react';
-import dynamic from 'next/dynamic';
-
-// Dynamic import with no SSR to avoid webpack issues
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then((mod) => mod.Canvas),
-  { ssr: false }
-);
-
-const OrbitControls = dynamic(
-  () => import('@react-three/drei').then((mod) => mod.OrbitControls),
-  { ssr: false }
-);
-
-const Text = dynamic(
-  () => import('@react-three/drei').then((mod) => mod.Text),
-  { ssr: false }
-);
-
-const Sphere = dynamic(
-  () => import('@react-three/drei').then((mod) => mod.Sphere),
-  { ssr: false }
-);
-
-interface ThreeSceneProps {
-  className?: string;
-}
+// Dynamic imports to prevent SSR issues
+const Canvas = dynamic(() => import('@react-three/fiber').then((mod) => mod.Canvas), { ssr: false })
+const Float = dynamic(() => import('@react-three/drei').then((mod) => mod.Float), { ssr: false })
+const OrbitControls = dynamic(() => import('@react-three/drei').then((mod) => mod.OrbitControls), { ssr: false })
 
 // Loading component
-function SceneLoading() {
+function ThreeSceneLoading() {
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="h-64 sm:h-80 md:h-96 w-full relative bg-gradient-to-br from-blue-50 to-teal-50 rounded-3xl flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading 3D Health Visualization...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading 3D Health Visualization...</p>
       </div>
     </div>
-  );
+  )
 }
 
-// 3D Scene Content Component
-function SceneContent() {
-  const [hoveredOrgan, setHoveredOrgan] = useState<string | null>(null);
-  
-  // Heart component
-  function Heart({ position, onClick }: { position: [number, number, number]; onClick: () => void }) {
-    return (
-      <Sphere
-        position={position}
-        args={[0.8, 32, 32]}
-        onClick={onClick}
-        onPointerOver={() => setHoveredOrgan('heart')}
-        onPointerOut={() => setHoveredOrgan(null)}
-      >
-        <meshStandardMaterial 
-          color={hoveredOrgan === 'heart' ? '#ef4444' : '#dc2626'} 
-          emissive={hoveredOrgan === 'heart' ? '#7f1d1d' : '#000000'}
-        />
-      </Sphere>
-    );
-  }
+// Scene content component
+function ThreeSceneContent() {
+  const [isClient, setIsClient] = useState(false)
 
-  // Brain component
-  function Brain({ position, onClick }: { position: [number, number, number]; onClick: () => void }) {
-    return (
-      <Sphere
-        position={position}
-        args={[0.7, 32, 32]}
-        onClick={onClick}
-        onPointerOver={() => setHoveredOrgan('brain')}
-        onPointerOut={() => setHoveredOrgan(null)}
-      >
-        <meshStandardMaterial 
-          color={hoveredOrgan === 'brain' ? '#8b5cf6' : '#7c3aed'} 
-          emissive={hoveredOrgan === 'brain' ? '#3730a3' : '#000000'}
-        />
-      </Sphere>
-    );
-  }
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
-  // Lungs component
-  function Lungs({ position, onClick }: { position: [number, number, number]; onClick: () => void }) {
-    return (
-      <group position={position}>
-        <Sphere
-          position={[-0.5, 0, 0]}
-          args={[0.6, 32, 32]}
-          onClick={onClick}
-          onPointerOver={() => setHoveredOrgan('lungs')}
-          onPointerOut={() => setHoveredOrgan(null)}
-        >
-          <meshStandardMaterial 
-            color={hoveredOrgan === 'lungs' ? '#06b6d4' : '#0891b2'} 
-            emissive={hoveredOrgan === 'lungs' ? '#164e63' : '#000000'}
-          />
-        </Sphere>
-        <Sphere
-          position={[0.5, 0, 0]}
-          args={[0.6, 32, 32]}
-          onClick={onClick}
-          onPointerOver={() => setHoveredOrgan('lungs')}
-          onPointerOut={() => setHoveredOrgan(null)}
-        >
-          <meshStandardMaterial 
-            color={hoveredOrgan === 'lungs' ? '#06b6d4' : '#0891b2'} 
-            emissive={hoveredOrgan === 'lungs' ? '#164e63' : '#000000'}
-          />
-        </Sphere>
-      </group>
-    );
+  if (!isClient) {
+    return <ThreeSceneLoading />
   }
 
   return (
-    <>
-      {/* Lighting */}
-      <ambientLight intensity={0.6} />
-      <pointLight position={[10, 10, 10]} intensity={1} />
-      <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-
-      {/* Interactive organs */}
-      <Heart 
-        position={[0, 0, 0]} 
-        onClick={() => console.log('Heart clicked - show heart health info')} 
-      />
-      <Brain 
-        position={[0, 3, 0]} 
-        onClick={() => console.log('Brain clicked - show mental health info')} 
-      />
-      <Lungs 
-        position={[0, -2, 0]} 
-        onClick={() => console.log('Lungs clicked - show respiratory info')} 
-      />
-
-      {/* Labels */}
-      {hoveredOrgan && (
-        <Text
-          position={[3, 2, 0]}
-          fontSize={0.5}
-          color="#1f2937"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {hoveredOrgan === 'heart' && 'Heart Health'}
-          {hoveredOrgan === 'brain' && 'Mental Wellness'}
-          {hoveredOrgan === 'lungs' && 'Respiratory Health'}
-        </Text>
-      )}
-
-      {/* Camera controls */}
-      <OrbitControls 
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        maxDistance={10}
-        minDistance={3}
-      />
-    </>
-  );
-}
-
-export default function ThreeScene({ className = "" }: ThreeSceneProps) {
-  const [isClient, setIsClient] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Don't render on server side
-  if (!isClient) {
-    return <SceneLoading />;
-  }
-
-  // Error fallback
-  if (error) {
-    return (
-      <div className={`w-full h-full flex items-center justify-center bg-gray-100 ${className}`}>
-        <div className="text-center p-6">
-          <div className="text-6xl mb-4">🏥</div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">3D Visualization Unavailable</h3>
-          <p className="text-gray-600 text-sm">Interactive health model couldn't load</p>
-          <button 
-            onClick={() => setError(null)}
-            className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  try {
-    return (
-      <div className={`w-full h-full ${className}`}>
-        <Suspense fallback={<SceneLoading />}>
-          <Canvas
-            camera={{ position: [5, 2, 5], fov: 60 }}
-            style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%)' }}
-            onError={(error) => {
-              console.error('Three.js Canvas error:', error);
-              setError('Failed to initialize 3D scene');
-            }}
-          >
-            <SceneContent />
-          </Canvas>
-        </Suspense>
+    <div className="h-64 sm:h-80 md:h-96 w-full relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-teal-50/30 rounded-3xl"></div>
+      <Canvas 
+        camera={{ position: [0, 0, 8], fov: 45 }}
+        className="w-full h-full"
+        style={{ touchAction: 'none' }}
+      >        <ambientLight intensity={1.0} color="#ffffff" />
+        <directionalLight position={[10, 10, 10]} intensity={1.2} color="#ffffff" />
+        <pointLight position={[5, 5, 5]} intensity={0.8} color="#ffffff" />
         
-        {/* Instructions overlay */}
-        <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 rounded-lg p-3 shadow-lg max-w-sm">
-          <h4 className="font-semibold text-gray-800 mb-1">Interactive Health Model</h4>
-          <p className="text-sm text-gray-600">
-            Click and drag to rotate • Scroll to zoom • Click organs for health insights
+        {/* Simple animated heart */}
+        <HeartModel />
+        
+        {/* Medical icons */}
+        <MedicalIcon position={[-3, 2, 0]} color="#10B981" />
+        <MedicalIcon position={[3, -1, 0]} color="#8B5CF6" />
+        <MedicalIcon position={[-2, -2, 0]} color="#F59E0B" />
+        <MedicalIcon position={[2, 2, 0]} color="#EF4444" />
+        
+        <OrbitControls 
+          enableZoom={false} 
+          enablePan={false}
+          autoRotate
+          autoRotateSpeed={0.5}
+        />
+      </Canvas>
+      
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-4">
+        <div className="text-center max-w-2xl">
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+            Advanced AI Technology
+          </h3>
+          <p className="text-lg text-gray-600">
+            Powered by cutting-edge machine learning
           </p>
         </div>
       </div>
-    );
-  } catch (error) {
-    console.error('ThreeScene render error:', error);
-    return (
-      <div className={`w-full h-full flex items-center justify-center bg-gray-100 ${className}`}>
-        <div className="text-center p-6">
-          <div className="text-6xl mb-4">🏥</div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">3D Visualization Unavailable</h3>
-          <p className="text-gray-600 text-sm">Your browser doesn't support 3D graphics</p>
-        </div>
-      </div>
-    );
-  }
+    </div>
+  )
+}
+
+// Simple medical heart model component
+function HeartModel() {
+  const heartRef = useRef<THREE.Group>(null)
+  
+  useEffect(() => {
+    // Simple slow rotation
+    const rotateHeart = () => {
+      if (heartRef.current) {
+        heartRef.current.rotation.y += 0.01 // Nice slow rotation
+      }
+      requestAnimationFrame(rotateHeart)
+    }
+    rotateHeart()
+  }, [])
+
+  return (
+    <Float speed={2} rotationIntensity={0.1} floatingRange={[0, 0.2]}>
+      <group ref={heartRef} scale={[2.2, 2.2, 2.2]}>
+        {/* Main heart shape */}
+        <mesh position={[0, 0.1, 0]}>
+          <sphereGeometry args={[0.5, 32, 32]} />
+          <meshStandardMaterial 
+            color="#e74c3c" 
+            metalness={0.2} 
+            roughness={0.3} 
+            emissive="#c0392b"
+            emissiveIntensity={0.05}
+          />
+        </mesh>
+        
+        {/* Left chamber */}
+        <mesh position={[-0.25, 0.4, 0]}>
+          <sphereGeometry args={[0.3, 32, 32]} />
+          <meshStandardMaterial 
+            color="#e74c3c" 
+            metalness={0.2} 
+            roughness={0.3}
+            emissive="#c0392b"
+            emissiveIntensity={0.05}
+          />
+        </mesh>
+        
+        {/* Right chamber */}
+        <mesh position={[0.25, 0.4, 0]}>
+          <sphereGeometry args={[0.3, 32, 32]} />
+          <meshStandardMaterial 
+            color="#e74c3c" 
+            metalness={0.2} 
+            roughness={0.3}
+            emissive="#c0392b"
+            emissiveIntensity={0.05}
+          />
+        </mesh>
+      </group>
+    </Float>
+  )
+}
+
+// Simple medical icon component
+function MedicalIcon({ position, color }: { position: [number, number, number], color: string }) {
+  const meshRef = useRef<THREE.Mesh>(null)
+  
+  return (
+    <Float speed={1.5} rotationIntensity={0.3} floatingRange={[0, 0.3]}>
+      <group position={position}>
+        <mesh ref={meshRef}>
+          <sphereGeometry args={[0.4, 32, 32]} />
+          <meshStandardMaterial 
+            color={color} 
+            metalness={0.3} 
+            roughness={0.2}
+            emissive={color}
+            emissiveIntensity={0.1}
+            transparent
+            opacity={0.9}
+          />
+        </mesh>
+      </group>
+    </Float>
+  )
+}
+
+export default function ThreeScene() {
+  return (
+    <Suspense fallback={<ThreeSceneLoading />}>
+      <ThreeSceneContent />
+    </Suspense>
+  )
 }

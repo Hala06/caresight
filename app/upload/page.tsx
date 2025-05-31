@@ -99,8 +99,7 @@ export default function UploadPage() {
                 { icon: '📱', title: 'Mobile Friendly', desc: 'Works on all devices and screen sizes' },
                 { icon: '🔒', title: 'Privacy First', desc: 'Local processing, your data stays secure' },
                 { icon: '⚡', title: 'Real-time Processing', desc: 'Fast OCR with progress tracking' },
-                { icon: '📤', title: 'Easy Export', desc: 'Copy text and summaries instantly' }
-              ].map((feature, index) => (
+                { icon: '📤', title: 'Easy Export', desc: 'Copy text and summaries instantly' }              ].map((feature) => (
                 <div key={feature.title} className="text-center">
                   <div className="text-2xl mb-2">{feature.icon}</div>
                   <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>

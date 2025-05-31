@@ -1,8 +1,36 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
+import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
+
+// Speech Recognition types for WebKit
+interface SpeechRecognitionEvent extends Event {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface SpeechRecognitionInterface extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+  onstart: ((this: SpeechRecognitionInterface, ev: Event) => void) | null;
+  onresult: ((this: SpeechRecognitionInterface, ev: SpeechRecognitionEvent) => void) | null;
+  onerror: ((this: SpeechRecognitionInterface, ev: Event) => void) | null;
+  onend: ((this: SpeechRecognitionInterface, ev: Event) => void) | null;
+}
+
+interface WebKitWindow extends Window {
+  webkitSpeechRecognition: new () => SpeechRecognitionInterface;
+}
 
 interface Message {
   id: string;
@@ -25,7 +53,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I'm your CareSight medical assistant. I can help explain medical terms, medications, and health information in simple language. I can also listen to your voice and read responses aloud. What would you like to know?",
+      text: "Hello! I&apos;m your CareSight medical assistant. I can help explain medical terms, medications, and health information in simple language. I can also listen to your voice and read responses aloud. What would you like to know?",
       isUser: false,
       timestamp: new Date()
     }
@@ -34,19 +62,18 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [isReading, setIsReading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognitionInterface | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContext = useRef<string>('');
 
   // Initialize Speech Recognition
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const speechRecognition = new (window as any).webkitSpeechRecognition();
+  useEffect(() => {    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
+      const speechRecognition = new (window as WebKitWindow).webkitSpeechRecognition();
       speechRecognition.continuous = false;
       speechRecognition.interimResults = false;
       speechRecognition.lang = 'en-US';
       
-      speechRecognition.onresult = (event: any) => {
+      speechRecognition.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         setInputText(transcript);
         setIsListening(false);
@@ -148,7 +175,7 @@ export default function ChatPage() {
       } else {
         const fallbackMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: "I'm here to help with health questions. Could you please rephrase your question or ask about symptoms, medications, or general health topics?",
+          text: "I&apos;m here to help with health questions. Could you please rephrase your question or ask about symptoms, medications, or general health topics?",
           isUser: false,
           timestamp: new Date()
         };
@@ -158,7 +185,7 @@ export default function ChatPage() {
       console.error('Chat error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I apologize, but I'm having trouble connecting right now. Please try asking your question again in a moment.",
+        text: "I apologize, but I&apos;m having trouble connecting right now. Please try asking your question again in a moment.",
         isUser: false,
         timestamp: new Date()
       };
@@ -336,10 +363,9 @@ export default function ChatPage() {
             className="mt-8"
           >
             <h3 className="text-xl font-semibold mb-4 text-center dark:text-white">Common Questions</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {sampleQuestions.map((question, index) => (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">              {sampleQuestions.map((question) => (
                 <button
-                  key={index}
+                  key={question}
                   onClick={() => handleQuickQuestion(question)}
                   className="p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-left hover:border-blue-300 hover:shadow-md transition-all dark:text-white"
                 >

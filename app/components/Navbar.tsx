@@ -2,9 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { useUser, UserButton } from '@clerk/nextjs';
-import { useTheme } from '../context/ThemeContext';
 import ThemeToggle from './ThemeToggle';
-import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
 interface NavbarProps {
@@ -13,6 +11,7 @@ interface NavbarProps {
 
 export default function Navbar({ transparent = false }: NavbarProps) {
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { isSignedIn, user, isLoaded } = useUser();
 
   useEffect(() => {

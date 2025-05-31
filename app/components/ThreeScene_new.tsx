@@ -1,11 +1,13 @@
 'use client'
 import { Suspense, useRef, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import * as THREE from 'three'
 
 // Dynamic imports to prevent SSR issues
 const Canvas = dynamic(() => import('@react-three/fiber').then((mod) => mod.Canvas), { ssr: false })
 const Float = dynamic(() => import('@react-three/drei').then((mod) => mod.Float), { ssr: false })
 const OrbitControls = dynamic(() => import('@react-three/drei').then((mod) => mod.OrbitControls), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Text = dynamic(() => import('@react-three/drei').then((mod) => mod.Text), { ssr: false })
 
 // Loading component
@@ -77,7 +79,7 @@ function ThreeSceneContent() {
 
 // Heart model component
 function HeartModel() {
-  const heartRef = useRef<any>(null)
+  const heartRef = useRef<THREE.Group>(null)
   
   return (
     <Float speed={2} rotationIntensity={0.1} floatingRange={[0, 0.2]}>
@@ -119,7 +121,7 @@ function HeartModel() {
 
 // Medical icon component
 function MedicalIcon({ position, color }: { position: [number, number, number], color: string }) {
-  const meshRef = useRef<any>(null)
+  const meshRef = useRef<THREE.Mesh>(null)
   
   return (
     <Float speed={1.5} rotationIntensity={0.5} floatingRange={[0, 0.3]}>

@@ -279,9 +279,8 @@ export default function CareSettings() {
                 >
                   <input
                     type="checkbox"
-                    checked={settings[setting.key as keyof CareSettings] as boolean}
-                    onChange={(e) => {
-                      updateSetting(setting.key as keyof CareSettings, e.target.checked as any);
+                    checked={settings[setting.key as keyof CareSettings] as boolean}                    onChange={(e) => {
+                      updateSetting(setting.key as keyof CareSettings, e.target.checked);
                       announceChange(`${setting.label} ${e.target.checked ? 'enabled' : 'disabled'}`);
                     }}
                     className="w-5 h-5 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500"

@@ -33,9 +33,8 @@ export default function OnboardingPage() {
     
     if (!isSignedIn) {
       redirect('/sign-in');
-    }
-  } catch (error) {
-    console.log('Clerk not available, skipping authentication');
+    }  } catch (error) {
+    console.log('Clerk not available, skipping authentication:', error);
   }
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -162,16 +161,14 @@ export default function OnboardingPage() {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                 Welcome to CareSight! 👋
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300">
-                Let's get to know you better to provide personalized care
+              </h2>              <p className="text-xl text-gray-600 dark:text-gray-300">
+                Let&apos;s get to know you better to provide personalized care
               </p>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  What's your age range?
+              <div>                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  What&apos;s your age range?
                 </label>
                 <select
                   value={onboardingData.age}
@@ -194,7 +191,7 @@ export default function OnboardingPage() {
                 <textarea
                   value={onboardingData.reasonForSignup}
                   onChange={(e) => setOnboardingData({ ...onboardingData, reasonForSignup: e.target.value })}
-                  placeholder="Tell us why you're interested in using CareSight..."
+                  placeholder="Tell us why you&apos;re interested in using CareSight..."
                   className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white h-32"
                 />
               </div>
@@ -246,9 +243,8 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Primary health concerns you'd like help with:
+              <div>                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Primary health concerns you&apos;d like help with:
                 </label>
                 <div className="grid grid-cols-1 gap-3">
                   {[
@@ -350,13 +346,12 @@ export default function OnboardingPage() {
 
       case 4:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
+          <div className="space-y-6">            <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                 Caregiver Network 👥
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300">
-                Who helps take care of you? We'll keep them informed (optional)
+                Who helps take care of you? We&apos;ll keep them informed (optional)
               </p>
             </div>
 

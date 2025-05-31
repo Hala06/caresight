@@ -2,7 +2,6 @@
 'use client';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
 
 const steps = [
   {
@@ -109,10 +108,9 @@ export default function GettingStarted() {
               </span>
               <br />
               <span className="text-gray-800">with CareSight</span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              Learn how to use CareSight's powerful features to simplify your healthcare journey. 
-              From document scanning to AI assistance, we'll guide you through every step.
+            </h1>            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
+              Learn how to use CareSight&apos;s powerful features to simplify your healthcare journey. 
+              From document scanning to AI assistance, we&apos;ll guide you through every step.
             </p>
           </motion.div>
         </div>

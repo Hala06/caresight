@@ -1,6 +1,14 @@
 // app/components/AccessibleButton.tsx
 import { cva } from 'class-variance-authority'
 import { motion } from 'framer-motion'
+import { ButtonHTMLAttributes, ReactNode } from 'react'
+
+interface AccessibleButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
+  'onAnimationStart' | 'onAnimationEnd' | 'onDragStart' | 'onDrag' | 'onDragEnd' | 'onMouseMove' | 'onMouseDown' | 'onMouseUp' | 'onTouchStart' | 'onTouchMove' | 'onTouchEnd'> {
+  intent?: 'primary' | 'secondary' | 'care' | 'emergency';
+  size?: 'small' | 'medium' | 'large';
+  children: ReactNode;
+}
 
 const buttonStyles = cva(
   'rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
@@ -29,14 +37,21 @@ export default function AccessibleButton({
   intent,
   size,
   children,
-  ...props 
-}: any) {
+  onClick,
+  disabled,
+  className,
+  type = 'button',
+  ...otherProps 
+}: AccessibleButtonProps) {
   return (
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className={buttonStyles({ intent, size })}
-      {...props}
+      className={`${buttonStyles({ intent, size })} ${className || ''}`}
+      onClick={onClick}
+      disabled={disabled}
+      type={type}
+      {...otherProps}
     >
       <span className="flex items-center gap-2 justify-center">
         {children}

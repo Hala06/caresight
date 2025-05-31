@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { redirect } from 'next/navigation';
 import Navbar from '../components/Navbar';
-import Link from 'next/link';
 
 interface Appointment {
   id: string;
@@ -76,20 +75,17 @@ const mockAppointments: Appointment[] = [
 
 export default function Appointments() {
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
-  
-  // Handle Clerk authentication safely for build time
+    // Handle Clerk authentication safely for build time
   let isSignedIn = false;
-  let user = null;
   
   try {
     const clerkData = useUser();
     isSignedIn = clerkData.isSignedIn ?? false;
-    user = clerkData.user;
     
     if (!isSignedIn) {
       redirect('/sign-in');
     }
-  } catch (error) {
+  } catch {
     // Clerk is not available during build, continue without authentication
     console.log('Clerk not available, skipping authentication');
   }

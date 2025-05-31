@@ -5,10 +5,14 @@ import { motion } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
 
 interface UserPreferences {
-  textToSpeech: boolean;
-  age: string;
+  textToSpeech: boolean;  age: string;
   medicalConditions: string[];
-  emergencyContacts: any[];
+  emergencyContacts: Array<{
+    name: string;
+    phone: string;
+    relationship: string;
+    email?: string;
+  }>;
   caregiverEmails: string[];
   accessibilityNeeds: string[];
   hasBloodPressure: boolean;
@@ -26,9 +30,14 @@ export default function PersonalizedWelcome({ isDemo, onboardingCompleted }: Per
   const { user } = useUser();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [hasSpoken, setHasSpoken] = useState(false);
-  const [showTour, setShowTour] = useState(false);
+  const [showTour, setShowTour] = useState(false);  const [isClient, setIsClient] = useState(false);
+  
   useEffect(() => {
-    if (typeof window !== 'undefined' && onboardingCompleted && !isDemo) {
+    setIsClient(true);
+  }, []);
+  
+  useEffect(() => {
+    if (isClient && onboardingCompleted && !isDemo) {
       // Load user preferences from localStorage
       const storedPrefs = localStorage.getItem('userPreferences');
       if (storedPrefs) {
@@ -41,7 +50,7 @@ export default function PersonalizedWelcome({ isDemo, onboardingCompleted }: Per
           // Inline the speech functionality to avoid dependency issues
           if ('speechSynthesis' in window && prefs.textToSpeech) {
             const name = user?.firstName || 'there';
-            let message = `Hello ${name}, welcome to CareSight! I'm your personal health assistant, and I'm here to help you manage your healthcare journey.`;
+            let message = `Hello ${name}, welcome to CareSight! I&apos;m your personal health assistant, and I&apos;m here to help you manage your healthcare journey.`;
             
             // Personalize based on medical conditions
             const conditions = [];
@@ -83,8 +92,8 @@ export default function PersonalizedWelcome({ isDemo, onboardingCompleted }: Per
           localStorage.setItem('hasWelcomed', 'true');
         }
       }
-    }
-  }, [onboardingCompleted, isDemo, hasSpoken, user?.firstName]);
+    }  }, [isClient, onboardingCompleted, isDemo, hasSpoken, user?.firstName]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const speakWelcomeMessage = (prefs: UserPreferences) => {
     if ('speechSynthesis' in window && prefs.textToSpeech) {
       const message = generateWelcomeMessage(prefs);
@@ -112,7 +121,7 @@ export default function PersonalizedWelcome({ isDemo, onboardingCompleted }: Per
     const name = user?.firstName || 'there';
     const timeOfDay = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening';
     
-    let message = `Good ${timeOfDay}, ${name}! Welcome back to CareSight. I'm your personal health assistant, and I'm here to help you manage your healthcare journey.`;
+    let message = `Good ${timeOfDay}, ${name}! Welcome back to CareSight. I&apos;m your personal health assistant, and I&apos;m here to help you manage your healthcare journey.`;
     
     // Personalize based on medical conditions with more specific guidance
     const conditions = [];
@@ -136,7 +145,7 @@ export default function PersonalizedWelcome({ isDemo, onboardingCompleted }: Per
     }
     
     if (conditions.length > 0) {
-      message += ` I see you're focusing on ${conditions.join(', ')}. `;
+      message += ` I see you&apos;re focusing on ${conditions.join(', ')}. `;
       if (conditionAdvice.length > 0) {
         message += conditionAdvice.join('. ') + '. ';
       }
@@ -152,7 +161,7 @@ export default function PersonalizedWelcome({ isDemo, onboardingCompleted }: Per
       message += ` I've also configured the interface to be more accessible for you with larger text and clearer navigation.`;
     }
     
-    message += ` Feel free to ask me any health questions, upload documents for analysis, or take the guided tour to explore all features. I'm here to help make healthcare easier for you.`;
+    message += ` Feel free to ask me any health questions, upload documents for analysis, or take the guided tour to explore all features. I&apos;m here to help make healthcare easier for you.`;
     
     return message;
   };
@@ -350,7 +359,7 @@ function PersonalizedTourModal({
   const [currentStep, setCurrentStep] = useState(0);  const tourSteps = [
     {
       title: `Welcome to CareSight, ${userName}! 🎉`,
-      content: "I'm here to help you manage your health journey with AI-powered assistance. Let me show you the features that are most relevant to your specific health needs and goals.",
+      content: "I&apos;m here to help you manage your health journey with AI-powered assistance. Let me show you the features that are most relevant to your specific health needs and goals.",
       icon: "👋"
     },
     {
@@ -360,7 +369,7 @@ function PersonalizedTourModal({
     },
     {
       title: "AI Medical Assistant 🤖",
-      content: "Ask me anything about health topics! I can explain medical terms, describe conditions, and help you understand what to expect. I'm trained specifically for healthcare education and use simple, clear language.",
+      content: "Ask me anything about health topics! I can explain medical terms, describe conditions, and help you understand what to expect. I&apos;m trained specifically for healthcare education and use simple, clear language.",
       icon: "🤖"
     },
     {
@@ -368,8 +377,8 @@ function PersonalizedTourModal({
       content: "Upload photos of prescriptions, lab results, or medical forms. I'll extract the text and explain everything in simple terms. This helps you understand your medical documents better.",
       icon: "📄"
     }
-  ];
-  // Detailed tour for users who want comprehensive overview (currently not used but available for future expansion)
+  ];  // Detailed tour for users who want comprehensive overview (currently not used but available for future expansion)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const detailedTourSteps = [
     ...tourSteps,
     {
@@ -384,7 +393,7 @@ function PersonalizedTourModal({
     },
     {
       title: "Voice Features & Text-to-Speech 🗣️",
-      content: "I can read everything aloud to you. Use voice commands to navigate, and I'll speak responses in a clear, caring voice. Great for accessibility or when you can't look at the screen.",
+      content: "I can read everything aloud to you. Use voice commands to navigate, and I&apos;ll speak responses in a clear, caring voice. Great for accessibility or when you can&apos;t look at the screen.",
       icon: "🗣️"
     }
   ];
@@ -393,7 +402,7 @@ function PersonalizedTourModal({
   if (preferences.hasBloodPressure) {
     tourSteps.push({
       title: "Blood Pressure Tracking 💓",
-      content: "Since you're monitoring blood pressure, I've highlighted tools to track your readings and get insights about your cardiovascular health.",
+      content: "Since you&apos;re monitoring blood pressure, I&apos;ve highlighted tools to track your readings and get insights about your cardiovascular health.",
       icon: "💓"
     });
   }

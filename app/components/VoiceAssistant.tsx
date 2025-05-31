@@ -1,12 +1,56 @@
 // app/components/VoiceAssistant.tsx
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VoiceCommand {
   command: string;
   description: string;
   action: () => void;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: {
+    transcript: string;
+    confidence: number;
+  };
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
+interface SpeechRecognitionInterface extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onstart: ((event: Event) => void) | null;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: ((event: Event) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition?: new () => SpeechRecognitionInterface;
+    SpeechRecognition?: new () => SpeechRecognitionInterface;
+  }
 }
 
 export default function VoiceAssistant() {
@@ -17,7 +61,7 @@ export default function VoiceAssistant() {
   const [confidence, setConfidence] = useState(0);
   const [isSupported, setIsSupported] = useState(false);
   
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionInterface | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const speak = useCallback((text: string, rate: number = 0.8) => {
     if (synthRef.current) {
@@ -51,8 +95,36 @@ export default function VoiceAssistant() {
       recognitionRef.current.stop();
     }
     
-    speak('Voice assistant deactivated. Thank you!');
-  }, [speak]);
+    speak('Voice assistant deactivated. Thank you!');  }, [speak]);
+
+  // Voice commands for elderly users - memoized to prevent recreation on every render
+  const voiceCommands = useMemo(() => {
+    const commands: VoiceCommand[] = [
+      {
+        command: 'read document',
+        description: 'Navigate to document scanner',
+        action: () => window.location.href = '/upload'
+      },
+      {
+        command: 'ask question',
+        description: 'Open AI chat assistant',
+        action: () => window.location.href = '/chat'
+      },
+      {
+        command: 'emergency help',
+        description: 'Go to emergency contacts',
+        action: () => window.location.href = '/care-mode'
+      },
+      {
+        command: 'dashboard',
+        description: 'Return to main dashboard',
+        action: () => window.location.href = '/dashboard'
+      }
+    ];
+    
+    // Add commands that depend on callbacks later
+    return commands;
+  }, []);
 
   const speakCommands = useCallback(() => {
     const commandList = voiceCommands
@@ -61,30 +133,11 @@ export default function VoiceAssistant() {
       .join('. ');
     
     speak(`Here are the available commands: ${commandList}. Say "stop listening" to deactivate the voice assistant.`);
-  }, [speak]);
+  }, [speak, voiceCommands]);
 
-  // Voice commands for elderly users
-  const voiceCommands: VoiceCommand[] = [
-    {
-      command: 'read document',
-      description: 'Navigate to document scanner',
-      action: () => window.location.href = '/upload'
-    },
-    {
-      command: 'ask question',
-      description: 'Open AI chat assistant',
-      action: () => window.location.href = '/chat'
-    },
-    {
-      command: 'emergency help',
-      description: 'Go to emergency contacts',
-      action: () => window.location.href = '/care-mode'
-    },
-    {
-      command: 'dashboard',
-      description: 'Return to main dashboard',
-      action: () => window.location.href = '/dashboard'
-    },
+  // Add the callback-dependent commands after the callbacks are defined
+  const allVoiceCommands = useMemo(() => [
+    ...voiceCommands,
     {
       command: 'stop listening',
       description: 'Deactivate voice assistant',
@@ -95,13 +148,11 @@ export default function VoiceAssistant() {
       description: 'List available voice commands',
       action: () => speakCommands()
     }
-  ];
-
-  const processCommand = useCallback((command: string) => {
+  ], [voiceCommands, deactivateVoiceAssistant, speakCommands]);  const processCommand = useCallback((command: string) => {
     setLastCommand(command);
     
     // Find matching voice command
-    const matchedCommand = voiceCommands.find(cmd => 
+    const matchedCommand = allVoiceCommands.find(cmd => 
       command.includes(cmd.command) || 
       cmd.command.split(' ').every(word => command.includes(word))
     );
@@ -114,10 +165,14 @@ export default function VoiceAssistant() {
     } else {
       speak(`Sorry, I didn't understand "${command}". Say "help" to hear available commands.`);
     }
-  }, [speak, deactivateVoiceAssistant, speakCommands]);
-
+  }, [speak, allVoiceCommands]);
   const initializeSpeechRecognition = useCallback(() => {
-    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    if (!SpeechRecognition) {
+      console.error('Speech recognition not supported');
+      return;
+    }
+    
     const recognition = new SpeechRecognition();
     
     recognition.continuous = true;
@@ -127,13 +182,9 @@ export default function VoiceAssistant() {
 
     recognition.onstart = () => {
       setIsListening(true);
-    };
-
-    recognition.onresult = (event: any) => {
+    };    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = '';
-      let interimTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      let interimTranscript = '';      for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcriptPart = event.results[i][0].transcript;
         const confidence = event.results[i][0].confidence;
         
@@ -147,9 +198,7 @@ export default function VoiceAssistant() {
       }
       
       setTranscript(finalTranscript || interimTranscript);
-    };
-
-    recognition.onerror = (event: any) => {
+    };    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
     };
@@ -167,8 +216,17 @@ export default function VoiceAssistant() {
     };
 
     recognitionRef.current = recognition;
-  }, [processCommand, isActivated]);
+  }, [processCommand, isActivated]);  const [isClient, setIsClient] = useState(false);
+  
+  // First useEffect just to set client-side flag
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  // Second useEffect for browser API initialization that depends on being on client
+  useEffect(() => {
+    if (!isClient) return;
+    
     // Check if speech recognition is supported
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       setIsSupported(true);
@@ -185,7 +243,7 @@ export default function VoiceAssistant() {
         recognitionRef.current.stop();
       }
     };
-  }, [initializeSpeechRecognition]);
+  }, [isClient, initializeSpeechRecognition]);
 
   const activateVoiceAssistant = () => {
     if (!isSupported) {
@@ -207,9 +265,8 @@ export default function VoiceAssistant() {
         <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
           <span>⚠️</span>
           <span className="font-medium">Voice Assistant Unavailable</span>
-        </div>
-        <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-          Your browser doesn't support voice recognition. Please use Chrome, Edge, or Safari for voice features.
+        </div>        <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+          Your browser doesn&apos;t support voice recognition. Please use Chrome, Edge, or Safari for voice features.
         </p>
       </div>
     );
@@ -287,7 +344,7 @@ export default function VoiceAssistant() {
           className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4"
         >
           <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">You said:</h4>
-          <p className="text-gray-700 dark:text-gray-300 italic">"{transcript}"</p>
+          <p className="text-gray-700 dark:text-gray-300 italic">&quot;{transcript}&quot;</p>
           {confidence > 0 && (
             <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Confidence: {Math.round(confidence * 100)}%
@@ -304,7 +361,7 @@ export default function VoiceAssistant() {
           className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4"
         >
           <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Last Command:</h4>
-          <p className="text-blue-700 dark:text-blue-300">"{lastCommand}"</p>
+          <p className="text-blue-700 dark:text-blue-300">&quot;{lastCommand}&quot;</p>
         </motion.div>
       )}
 
@@ -318,7 +375,7 @@ export default function VoiceAssistant() {
             <div key={index} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
               <span className="text-purple-500 mt-0.5">•</span>
               <div>
-                <span className="font-medium">"{command.command}"</span>
+                <span className="font-medium">&quot;{command.command}&quot;</span>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   {command.description}
                 </div>
@@ -329,7 +386,7 @@ export default function VoiceAssistant() {
         
         <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded border">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            <strong>💡 Tip:</strong> Speak clearly and naturally. Say "help" anytime to hear all commands again.
+            <strong>💡 Tip:</strong> Speak clearly and naturally. Say &quot;help&quot; anytime to hear all commands again.
           </p>
         </div>
       </div>

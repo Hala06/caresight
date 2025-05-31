@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface Medication {
@@ -42,6 +42,7 @@ export default function HealthMonitoring() {
     }
   ]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([
     {
       id: '1',
@@ -72,6 +73,7 @@ export default function HealthMonitoring() {
     }
   ]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showReminders, setShowReminders] = useState(true);
 
   const markMedicationTaken = (medId: string) => {

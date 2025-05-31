@@ -5,11 +5,15 @@ import Navbar from '../components/Navbar';
 import PersonalizedWelcome from '../components/PersonalizedWelcome';
 import BackgroundAnimations from '../components/BackgroundAnimations';
 
-interface UserPreferences {
-  textToSpeech: boolean;
+interface UserPreferences {  textToSpeech: boolean;
   age: string;
   medicalConditions: string[];
-  emergencyContacts: any[];
+  emergencyContacts: Array<{
+    name: string;
+    phone: string;
+    relationship: string;
+    email?: string;
+  }>;
   caregiverEmails: string[];
   accessibilityNeeds: string[];
   hasBloodPressure: boolean;
@@ -106,17 +110,15 @@ export default function TestFeatures() {
   const clearResults = () => {
     setTestResults([]);
   };
-
-  const updatePreference = (key: keyof UserPreferences, value: any) => {
+  const updatePreference = (key: keyof UserPreferences, value: UserPreferences[keyof UserPreferences]) => {
     setPreferences(prev => {
-      const updated = { ...prev, [key]: value };
-      
-      // Update boolean flags based on medical conditions
-      if (key === 'medicalConditions') {
-        updated.hasBloodPressure = value.includes('Blood Pressure');
-        updated.hasDiabetes = value.includes('Diabetes');
-        updated.hasHeartCondition = value.includes('Heart Condition');
-        updated.hasAsthma = value.includes('Asthma');
+      const updated = { ...prev, [key]: value };      // Update boolean flags based on medical conditions
+      if (key === 'medicalConditions' && Array.isArray(value)) {
+        const conditions = value as string[];
+        updated.hasBloodPressure = conditions.includes('Blood Pressure');
+        updated.hasDiabetes = conditions.includes('Diabetes');
+        updated.hasHeartCondition = conditions.includes('Heart Condition');
+        updated.hasAsthma = conditions.includes('Asthma');
       }
       
       return updated;

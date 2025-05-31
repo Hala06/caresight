@@ -19,8 +19,8 @@ export default function CareCoordination() {
         },
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
-      alert('Medical summary shared successfully!');
-    } catch (error) {
+      alert('Medical summary shared successfully!');    } catch (error) {
+      console.error('Failed to share medical summary:', error);
       alert('Sharing failed. Please try again.');
     }
     setIsSending(false);

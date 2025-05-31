@@ -66,14 +66,21 @@ export default function EmailReminder() {
   const [scheduleTime, setScheduleTime] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [scheduledReminders, setScheduledReminders] = useState<ScheduledReminder[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  // Set client-side flag
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Load scheduled reminders from localStorage
   useEffect(() => {
+    if (!isClient) return; // Only run on client-side
+    
     const saved = localStorage.getItem('scheduledReminders');
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        setScheduledReminders(parsed.map((r: any) => ({
+        const parsed = JSON.parse(saved);setScheduledReminders(parsed.map((r: ScheduledReminder & { scheduledTime: string; lastSent?: string }) => ({
           ...r,
           scheduledTime: new Date(r.scheduledTime),
           lastSent: r.lastSent ? new Date(r.lastSent) : undefined
@@ -83,11 +90,12 @@ export default function EmailReminder() {
       }
     }
   }, []);
-
   // Save scheduled reminders to localStorage
   useEffect(() => {
+    if (!isClient) return; // Only run on client-side
+    
     localStorage.setItem('scheduledReminders', JSON.stringify(scheduledReminders));
-  }, [scheduledReminders]);
+  }, [isClient, scheduledReminders]);
 
   const sendEmailReminder = async (template: ReminderTemplate, immediate: boolean = false) => {
     if (!recipientEmail || !recipientName) {

@@ -1,8 +1,8 @@
 // app/dashboard/page.tsx
 'use client';
 import { useUser } from '@clerk/nextjs';
-import { redirect } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import HealthMonitoring from '../components/HealthMonitoring';
 import HealthOverview from '../components/HealthOverview';
@@ -13,44 +13,116 @@ import VoiceAssistant from '../components/VoiceAssistant';
 import CareSettings from '../components/CareSettings';
 import PersonalizedWelcome from '../components/PersonalizedWelcome';
 import BackgroundAnimations from '../components/BackgroundAnimations';
+import ClientOnly from '../components/ClientOnly';
 import Link from 'next/link';
 
 export default function Dashboard() {
-  // Handle Clerk authentication safely for build time
-  let isSignedIn = false;
-  let user = null;
+  const [isClient, setIsClient] = useState(false);
+  const [userStatus, setUserStatus] = useState({
+    isDemo: false,
+    onboardingCompleted: false,
+    hasAppointments: false,
+    hasEmergencyContacts: false,
+    hasMedications: false
+  });
+  // Handle Clerk authentication safely for client-side only
+  const clerkData = useUser();
+  const user = isClient ? clerkData.user : null;
   
-  try {
-    const clerkData = useUser();
-    isSignedIn = clerkData.isSignedIn ?? false;
-    user = clerkData.user;
+  useEffect(() => {
+    // Mark the component as running on client-side
+    setIsClient(true);
     
-    if (!isSignedIn) {
-      redirect('/sign-in');
-    }
-  } catch (error) {
-    // Clerk is not available during build, continue without authentication
-    console.log('Clerk not available, skipping authentication');
-  }
-
-  // Check if user has completed onboarding
-  const checkOnboardingStatus = () => {
+    // Handle localStorage access only on client
     if (typeof window !== 'undefined') {
-      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-      const isDemo = localStorage.getItem('isDemo') === 'true';
-      
-      // If not demo user and hasn't completed onboarding, redirect
-      if (!isDemo && !onboardingCompleted && isSignedIn) {
-        redirect('/onboarding');
+      try {
+        // Get user data from localStorage
+        const isDemo = localStorage.getItem('isDemo') === 'true';
+        
+        // If we're in demo mode, set up demo data for consistency
+        if (isDemo) {
+          // Ensure we have demo data available
+          if (!localStorage.getItem('onboardingCompleted')) {
+            localStorage.setItem('onboardingCompleted', 'true');
+          }
+          
+          // Set up demo data if not already present
+          setupDemoData();
+        }
+        
+        // Now read all values
+        const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+        const appointments = localStorage.getItem('userAppointments');
+        const emergencyContacts = localStorage.getItem('emergencyContacts');
+        const medications = localStorage.getItem('userMedications');
+        
+        setUserStatus({
+          isDemo,
+          onboardingCompleted: !!onboardingCompleted,
+          hasAppointments: appointments ? JSON.parse(appointments).length > 0 : false,
+          hasEmergencyContacts: emergencyContacts ? JSON.parse(emergencyContacts).length > 0 : false,
+          hasMedications: medications ? JSON.parse(medications).length > 0 : false
+        });
+          // Redirect logic - handle only after we've confirmed client-side rendering
+        if (!isDemo && !onboardingCompleted && clerkData.isSignedIn === true) {
+          window.location.href = '/onboarding'; // Use location.href instead of redirect() to avoid hydration issues
+        }
+      } catch (error) {
+        console.error("Error processing user data:", error);
       }
-      
-      return { onboardingCompleted: !!onboardingCompleted, isDemo };
     }
-    return { onboardingCompleted: false, isDemo: false };
+  }, [clerkData.isSignedIn]);
+
+  // Set up demo data if needed
+  const setupDemoData = () => {
+    // Only set up if we don't have data already
+    if (!localStorage.getItem('userAppointments')) {
+      localStorage.setItem('userAppointments', JSON.stringify([
+        {
+          doctor: 'Dr. Sarah Johnson',
+          specialty: 'Cardiologist',
+          date: 'Today, 2:30 PM',
+          type: 'Follow-up',
+          status: 'confirmed'
+        },
+        {
+          doctor: 'Dr. Michael Chen',
+          specialty: 'Primary Care',
+          date: 'Tomorrow, 10:00 AM',
+          type: 'Routine Checkup',
+          status: 'confirmed'
+        }
+      ]));
+    }
   };
 
-  const { onboardingCompleted, isDemo } = checkOnboardingStatus();
-
+  // Show loading during client/server mismatch to prevent hydration errors
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }  // Only redirect client-side to avoid hydration issues
+  if (isClient && clerkData.isSignedIn === false && !userStatus.isDemo) {
+    // Use location instead of redirect() to avoid hydration mismatches
+    if (typeof window !== 'undefined') {
+      // Use useEffect for redirection instead of direct redirects
+      useEffect(() => {
+        window.location.href = '/sign-in';
+      }, []);
+    }
+    // Return loading state instead of null to avoid hydration mismatch
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
   const quickActions = [
     {
       title: 'Upload Document',
@@ -82,7 +154,17 @@ export default function Dashboard() {
     }
   ];
 
-  const upcomingAppointments = [
+  // Get user's actual appointments from localStorage
+  const getUserAppointments = () => {
+    if (typeof window !== 'undefined') {
+      const appointments = localStorage.getItem('userAppointments');
+      return appointments ? JSON.parse(appointments) : [];
+    }
+    return [];
+  };
+
+  // Demo appointments (only shown in demo mode)
+  const demoAppointments = [
     {
       doctor: 'Dr. Sarah Johnson',
       specialty: 'Cardiologist',
@@ -103,8 +185,46 @@ export default function Dashboard() {
       date: 'Friday, 3:00 PM',
       type: 'Diabetes Management',
       status: 'pending'
+    }  ];
+
+  // Only load appointments on client-side to prevent hydration mismatches
+  const upcomingAppointments = isClient ? (userStatus.isDemo ? demoAppointments : getUserAppointments()) : [];
+    // Create a welcome message that will be consistent between server and client
+  const getWelcomeMessage = () => {
+    if (!isClient) {
+      return {
+        title: "Welcome to CareSight",
+        subtitle: "Loading your personalized dashboard..."
+      };
     }
-  ];
+    
+    if (userStatus.isDemo) {
+      return {
+        title: "Welcome to the CareSight Demo! 👋",
+        subtitle: "Explore our demo features and see how CareSight can help with healthcare management"
+      };
+    }
+    
+    if (userStatus.onboardingCompleted) {
+      return {
+        title: `Welcome back, ${user?.firstName || 'User'}! 👋`,
+        subtitle: `Here&apos;s your health overview for ${new Date().toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })}`
+      };
+    }
+    
+    return {
+      title: `Hi ${user?.firstName || 'User'}! Let&apos;s get started 🚀`,
+      subtitle: "Complete your setup to unlock personalized health assistance"
+    };
+  };
+  
+  const welcomeMessage = getWelcomeMessage();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative">
       {/* Calm Background Animations */}
@@ -123,23 +243,14 @@ export default function Dashboard() {
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 mb-8">
               <div className="flex items-center justify-between flex-wrap gap-4">                <div>
                   <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    {isDemo ? `Welcome to the CareSight Demo! 👋` : 
-                     onboardingCompleted ? `Welcome back, ${user?.firstName || 'User'}! 👋` :
-                     `Hi ${user?.firstName || 'User'}! Let's get started 🚀`}
+                    {welcomeMessage.title}
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300">
-                    {isDemo ? 'Explore our demo features and see how CareSight can help with healthcare management' :
-                     onboardingCompleted ? `Here's your health overview for ${new Date().toLocaleDateString('en-US', { 
-                       weekday: 'long', 
-                       year: 'numeric', 
-                       month: 'long', 
-                       day: 'numeric' 
-                     })}` :
-                     'Complete your setup to unlock personalized health assistance'}
+                    {welcomeMessage.subtitle}
                   </p>
                   
                   {/* Show onboarding reminder for new users */}
-                  {!isDemo && !onboardingCompleted && (
+                  {!userStatus.isDemo && !userStatus.onboardingCompleted && (
                     <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
                       <div className="flex items-center gap-3">
                         <div className="text-2xl">✨</div>
@@ -157,10 +268,9 @@ export default function Dashboard() {
                         </Link>
                       </div>
                     </div>
-                  )}
-                  
+                  )}                  
                   {/* Demo disclaimer */}
-                  {isDemo && (
+                  {userStatus.isDemo && (
                     <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
                       <div className="flex items-center gap-3">
                         <div className="text-2xl">⚠️</div>
@@ -173,28 +283,29 @@ export default function Dashboard() {
                       </div>
                     </div>
                   )}
-                </div>
-                <div className="flex items-center gap-4">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="text-center"
-                  >
-                    <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center text-white text-2xl mb-1 shadow-lg">
-                      ❤️
-                    </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Health Score</span>
-                    <div className="text-lg font-bold text-green-600 dark:text-green-400">85%</div>
-                  </motion.div>
+                </div>                <div className="flex items-center gap-4">
+                  {isClient && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      className="text-center"
+                    >
+                      <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center text-white text-2xl mb-1 shadow-lg">
+                        ❤️
+                      </div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Health Score</span>
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {userStatus.isDemo ? "85%" : "---"}
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               </div>            </div>
-          </motion.div>
-
-          {/* Personalized Welcome Component */}
+          </motion.div>          {/* Personalized Welcome Component */}
           <PersonalizedWelcome 
-            isDemo={isDemo} 
-            onboardingCompleted={onboardingCompleted} 
+            isDemo={userStatus.isDemo} 
+            onboardingCompleted={userStatus.onboardingCompleted} 
           />
 
           {/* Quick Actions Grid */}
@@ -331,43 +442,60 @@ export default function Dashboard() {
                   <span className="ml-auto bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-sm px-3 py-1 rounded-full">
                     {upcomingAppointments.length}
                   </span>
-                </h3>
-                <div className="space-y-4">
-                  {upcomingAppointments.map((appointment, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-                      whileHover={{ scale: 1.02, x: 5 }}
-                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all cursor-pointer group"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {appointment.doctor}
-                        </h4>
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          appointment.status === 'confirmed' 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        }`}>
-                          {appointment.status}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-1 flex items-center gap-2">
-                        <span>🩺</span>
-                        {appointment.specialty}
+                </h3>                <div className="space-y-4">
+                  {upcomingAppointments.length > 0 ? (
+                    upcomingAppointments.map((appointment: any, index: number) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
+                        whileHover={{ scale: 1.02, x: 5 }}
+                        className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all cursor-pointer group"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            {appointment.doctor}
+                          </h4>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            appointment.status === 'confirmed' 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                          }`}>
+                            {appointment.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-1 flex items-center gap-2">
+                          <span>🩺</span>
+                          {appointment.specialty}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
+                          <span>🕐</span>
+                          {appointment.date}
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                          <span>📋</span>
+                          {appointment.type}
+                        </p>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="text-6xl mb-4">📅</div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        No Upcoming Appointments
+                      </h4>                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        You don&apos;t have any scheduled appointments yet.
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                        <span>🕐</span>
-                        {appointment.date}
-                      </p>
-                      <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                        <span>📋</span>
-                        {appointment.type}
-                      </p>
-                    </motion.div>
-                  ))}
+                      <Link
+                        href="/appointments"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <span>📅</span>
+                        Schedule Appointment
+                      </Link>
+                    </div>
+                  )}
                 </div>
                 <Link
                   href="/appointments"
@@ -384,9 +512,11 @@ export default function Dashboard() {
               >
                 <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl blur opacity-25"></div>
                 <div className="relative">
-                  <EmergencyContacts />
+                  <ClientOnly>
+                    <EmergencyContacts />
+                  </ClientOnly>
                 </div>
-              </motion.div>              {/* Email Reminder System */}
+              </motion.div>{/* Email Reminder System */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}

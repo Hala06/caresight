@@ -7,51 +7,8 @@ interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   mounted: boolean;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // Check for saved theme preference or default to system preference
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-      setTheme(savedTheme);
-    } else {
-      // Check system preference
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(systemPrefersDark ? 'dark' : 'light');
-    }
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      // Apply theme to document
-      const root = document.documentElement;
-      root.classList.remove('light', 'dark');
-      root.classList.add(theme);
-      
-      // Also set attribute for additional compatibility
-      root.setAttribute('data-theme', theme);
-      
-      // Save to localStorage
-      localStorage.setItem('theme', theme);
-    }
-  }, [theme, mounted]);
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, mounted }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  textToSpeechEnabled: boolean;
+  toggleTextToSpeech: () => void;
 }
 
 export function useTheme() {
@@ -60,4 +17,50 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>('light');
+  const [mounted, setMounted] = useState(false);
+  const [textToSpeechEnabled, setTextToSpeechEnabled] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    const savedTextToSpeech = localStorage.getItem('textToSpeechEnabled') === 'true';
+    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+      setTheme(savedTheme);
+    } else {
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(systemPrefersDark ? 'dark' : 'light');
+    }
+    setTextToSpeechEnabled(savedTextToSpeech);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      const root = document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+      root.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      localStorage.setItem('textToSpeechEnabled', textToSpeechEnabled.toString());
+    }
+  }, [theme, mounted, textToSpeechEnabled]);
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  };
+
+  const toggleTextToSpeech = () => {
+    setTextToSpeechEnabled(prev => !prev);
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme, mounted, textToSpeechEnabled, toggleTextToSpeech }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }

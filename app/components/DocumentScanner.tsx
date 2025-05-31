@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { createWorker } from 'tesseract.js';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 interface ScanResult {
   extractedText: string;
@@ -221,12 +222,13 @@ Make it easy to understand for elderly patients and use simple language.`,
           'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'}`}
       >
         <input {...getInputProps()} />
-        
-        {preview ? (
+          {preview ? (
           <div className="space-y-4">
-            <img 
+            <Image 
               src={preview} 
               alt="Preview" 
+              width={300}
+              height={200}
               className="max-h-48 mx-auto rounded-lg shadow-md"
             />
             {scanResult && (

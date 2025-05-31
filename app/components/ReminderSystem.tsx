@@ -17,7 +17,9 @@ interface Reminder {
   isActive: boolean;
 }
 
-export default function ReminderSystem() {  const [reminders, setReminders] = useState<Reminder[]>([
+export default function ReminderSystem() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [reminders, setReminders] = useState<Reminder[]>([
     {
       id: '1',
       type: 'medication',
@@ -32,9 +34,9 @@ export default function ReminderSystem() {  const [reminders, setReminders] = us
         ]
       },
       isActive: true
-    }
-  ]);
+    }  ]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isCreating, setIsCreating] = useState(false);
   const [isSending, setIsSending] = useState(false);
 

@@ -69,19 +69,19 @@ const mockRecords: HealthRecord[] = [
 export default function HealthRecords() {
   // Handle Clerk authentication safely for build time
   let isSignedIn = false;
-  let user = null;
+  // let user = null; // Commented out as it's not used
   
   try {
     const clerkData = useUser();
     isSignedIn = clerkData.isSignedIn ?? false;
-    user = clerkData.user;
+    // user = clerkData.user; // Commented out as it's not used elsewhere
     
     if (!isSignedIn) {
       redirect('/sign-in');
     }
   } catch (error) {
     // Clerk is not available during build, continue without authentication
-    console.log('Clerk not available, skipping authentication');
+    console.log('Clerk not available, skipping authentication:', error);
   }
   
   const [filter, setFilter] = useState<'all' | 'lab_result' | 'prescription' | 'visit_note' | 'vaccination'>('all');
@@ -146,10 +146,9 @@ export default function HealthRecords() {
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Filter by Type
-                </label>
-                <select
+                </label>                <select
                   value={filter}
-                  onChange={(e) => setFilter(e.target.value as any)}
+                  onChange={(e) => setFilter(e.target.value as 'all' | 'lab_result' | 'prescription' | 'visit_note' | 'vaccination')}
                   className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="all">All Records</option>
@@ -164,10 +163,9 @@ export default function HealthRecords() {
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Sort by
-                </label>
-                <select
+                </label>                <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
+                  onChange={(e) => setSortBy(e.target.value as 'date' | 'type' | 'provider')}
                   className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="date">Date (Newest First)</option>

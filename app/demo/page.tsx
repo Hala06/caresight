@@ -106,9 +106,8 @@ export default function DemoPage() {
                 <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
                   Interactive Demo
                 </span>
-              </h1>
-              <h2 className="text-2xl md:text-3xl font-medium text-gray-800 dark:text-gray-200 mb-6">
-                Experience CareSight's Features Live
+              </h1>              <h2 className="text-2xl md:text-3xl font-medium text-gray-800 dark:text-gray-200 mb-6">
+                Experience CareSight&apos;s Features Live
               </h2>
             </motion.div>
 

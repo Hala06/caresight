@@ -1,6 +1,6 @@
 // app/components/HealthAlerts.tsx
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function HealthAlerts() {
   const [alerts] = useState([

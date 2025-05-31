@@ -17,7 +17,7 @@ export const HeroError = () => (
 export const FeatureShowcaseError = () => (
   <div className="p-4 rounded-lg bg-red-50 text-red-600">
     <h3 className="font-semibold mb-2">Features section unavailable</h3>
-    <p className="text-sm">We're having trouble loading the features showcase.</p>
+    <p className="text-sm">We&apos;re having trouble loading the features showcase.</p>
   </div>
 );
 
