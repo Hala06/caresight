@@ -2,7 +2,7 @@
 'use client';
 import { useUser } from '@clerk/nextjs';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import HealthMonitoring from '../components/HealthMonitoring';
 import HealthOverview from '../components/HealthOverview';
@@ -17,6 +17,7 @@ import ClientOnly from '../components/ClientOnly';
 import Link from 'next/link';
 
 export default function Dashboard() {
+  // --- All state hooks at the top level ---
   const [isClient, setIsClient] = useState(false);
   const [userStatus, setUserStatus] = useState({
     isDemo: false,
@@ -25,56 +26,15 @@ export default function Dashboard() {
     hasEmergencyContacts: false,
     hasMedications: false
   });
-  // Handle Clerk authentication safely for client-side only
+  
+  // Clerk authentication
   const clerkData = useUser();
   const user = isClient ? clerkData.user : null;
   
-  useEffect(() => {
-    // Mark the component as running on client-side
-    setIsClient(true);
+  // Setup demo data helper function wrapped in useCallback to avoid dependency changes
+  const setupDemoData = useCallback(() => {
+    if (typeof window === 'undefined' || !isClient) return;
     
-    // Handle localStorage access only on client
-    if (typeof window !== 'undefined') {
-      try {
-        // Get user data from localStorage
-        const isDemo = localStorage.getItem('isDemo') === 'true';
-        
-        // If we're in demo mode, set up demo data for consistency
-        if (isDemo) {
-          // Ensure we have demo data available
-          if (!localStorage.getItem('onboardingCompleted')) {
-            localStorage.setItem('onboardingCompleted', 'true');
-          }
-          
-          // Set up demo data if not already present
-          setupDemoData();
-        }
-        
-        // Now read all values
-        const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-        const appointments = localStorage.getItem('userAppointments');
-        const emergencyContacts = localStorage.getItem('emergencyContacts');
-        const medications = localStorage.getItem('userMedications');
-        
-        setUserStatus({
-          isDemo,
-          onboardingCompleted: !!onboardingCompleted,
-          hasAppointments: appointments ? JSON.parse(appointments).length > 0 : false,
-          hasEmergencyContacts: emergencyContacts ? JSON.parse(emergencyContacts).length > 0 : false,
-          hasMedications: medications ? JSON.parse(medications).length > 0 : false
-        });
-          // Redirect logic - handle only after we've confirmed client-side rendering
-        if (!isDemo && !onboardingCompleted && clerkData.isSignedIn === true) {
-          window.location.href = '/onboarding'; // Use location.href instead of redirect() to avoid hydration issues
-        }
-      } catch (error) {
-        console.error("Error processing user data:", error);
-      }
-    }
-  }, [clerkData.isSignedIn]);
-
-  // Set up demo data if needed
-  const setupDemoData = () => {
     // Only set up if we don't have data already
     if (!localStorage.getItem('userAppointments')) {
       localStorage.setItem('userAppointments', JSON.stringify([
@@ -94,9 +54,68 @@ export default function Dashboard() {
         }
       ]));
     }
-  };
-
-  // Show loading during client/server mismatch to prevent hydration errors
+  }, [isClient]);
+  
+  // --- Effect for setting client-side state ---
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+    // --- Effect for loading user data from localStorage ---
+  useEffect(() => {
+    if (!isClient || typeof window === 'undefined') return;
+    
+    try {
+      // Get user data from localStorage
+      const isDemo = localStorage.getItem('isDemo') === 'true';
+      
+      // If we're in demo mode, set up demo data for consistency
+      if (isDemo) {
+        // Ensure we have demo data available
+        if (!localStorage.getItem('onboardingCompleted')) {
+          localStorage.setItem('onboardingCompleted', 'true');
+        }
+        
+        // Set up demo data if not already present
+        setupDemoData();
+      }
+      
+      // Now read all values
+      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+      const appointments = localStorage.getItem('userAppointments');
+      const emergencyContacts = localStorage.getItem('emergencyContacts');
+      const medications = localStorage.getItem('userMedications');
+        setUserStatus({
+        isDemo,
+        onboardingCompleted: !!onboardingCompleted,
+        hasAppointments: appointments ? JSON.parse(appointments).length > 0 : false,
+        hasEmergencyContacts: emergencyContacts ? JSON.parse(emergencyContacts).length > 0 : false,
+        hasMedications: medications ? JSON.parse(medications).length > 0 : false
+      });
+    } catch (error) {
+      console.error("Error processing user data:", error);
+    }
+  }, [isClient, setupDemoData]);
+  
+  // --- Effect for handling onboarding redirection ---
+  useEffect(() => {
+    if (isClient && typeof window !== 'undefined') {
+      const isDemo = localStorage.getItem('isDemo') === 'true';
+      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+      
+      if (!isDemo && !onboardingCompleted && clerkData.isSignedIn === true) {
+        window.location.href = '/onboarding';
+      }
+    }
+  }, [isClient, clerkData.isSignedIn]);
+  
+  // --- Effect for handling sign-in redirection ---
+  useEffect(() => {
+    if (isClient && clerkData.isSignedIn === false && !userStatus.isDemo) {
+      window.location.href = '/sign-in';
+    }
+  }, [isClient, clerkData.isSignedIn, userStatus.isDemo]);
+  
+  // --- Show loading during client/server mismatch ---
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -105,16 +124,10 @@ export default function Dashboard() {
         </div>
       </div>
     );
-  }  // Only redirect client-side to avoid hydration issues
+  }
+    // Show loading state during authentication check
   if (isClient && clerkData.isSignedIn === false && !userStatus.isDemo) {
-    // Use location instead of redirect() to avoid hydration mismatches
-    if (typeof window !== 'undefined') {
-      // Use useEffect for redirection instead of direct redirects
-      useEffect(() => {
-        window.location.href = '/sign-in';
-      }, []);
-    }
-    // Return loading state instead of null to avoid hydration mismatch
+    // Authentication loading - we use early return here but all hooks have already been called at the top level
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="flex items-center justify-center min-h-screen">
@@ -444,7 +457,13 @@ export default function Dashboard() {
                   </span>
                 </h3>                <div className="space-y-4">
                   {upcomingAppointments.length > 0 ? (
-                    upcomingAppointments.map((appointment: any, index: number) => (
+                    upcomingAppointments.map((appointment: {
+                      doctor: string;
+                      specialty: string;
+                      date: string;
+                      type: string;
+                      status: string;
+                    }, index: number) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, x: 20 }}

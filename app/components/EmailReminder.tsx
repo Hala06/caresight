@@ -72,7 +72,6 @@ export default function EmailReminder() {
   useEffect(() => {
     setIsClient(true);
   }, []);
-
   // Load scheduled reminders from localStorage
   useEffect(() => {
     if (!isClient) return; // Only run on client-side
@@ -89,7 +88,7 @@ export default function EmailReminder() {
         console.error('Failed to load scheduled reminders:', error);
       }
     }
-  }, []);
+  }, [isClient]);
   // Save scheduled reminders to localStorage
   useEffect(() => {
     if (!isClient) return; // Only run on client-side
